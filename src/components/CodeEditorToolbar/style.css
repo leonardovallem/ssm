@@ -1,0 +1,42 @@
+header {
+    background-color: #313131 !important;
+}
+
+.white-text * {
+    color: #F0F0F0;
+}
+
+.font-size-controls {
+    border: thin #707070 solid;
+    border-radius: 1em;
+}
+
+.font-size-controls .Mui-disabled > svg {
+    fill: #888888 !important;
+}
+
+.zoom-label {
+    border-left: thin #707070 solid;
+    border-right: thin #707070 solid;
+    padding: 0.4em;
+}
+
+#theme-selector {
+    color: #F0F0F0;
+}
+
+#theme-selector.Mui-focused {
+    color: gold;
+}
+
+.theme-selector {
+    color: #F0F0F0 !important;
+}
+
+.theme-selector > fieldset {
+    border-color: #F0F0F0 !important;
+}
+
+.theme-selector > fieldset.Mui-focused {
+    border-color: gold !important;
+}
