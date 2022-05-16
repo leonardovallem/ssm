@@ -1,44 +1,33 @@
 import React from "react"
 import Editor from "@monaco-editor/react"
-import {Stack} from "@mui/material"
+import {Alert, Snackbar, Stack} from "@mui/material"
 import CodeEditorToolbar from "../CodeEditorToolbar"
 import MonacoThemes from "../../util/MonacoThemes"
 import {editor} from "monaco-editor"
-
-const MAX_FONT_SIZE = 48
-const MIN_FONT_SIZE = 8
+import {useDispatch, useSelector} from "react-redux"
+import {RootState} from "../../store"
+import {editorActions} from "../../store/features/editor"
+import {mipsActions} from "../../store/features/mips"
+import ProgramState from "../../util/EditorState"
 
 export default function CodeEditor() {
+    const dispatch = useDispatch()
+
     const themeNames = Object.keys(MonacoThemes)
     const themes = Object.values(MonacoThemes)
 
-    const [theme, setTheme] = React.useState(themeNames[0])
-
-    const [fontSize, setFontSize] = React.useState(16)
-    const [minFontSizeReached, setMinFontSizeReached] = React.useState(false)
-    const [maxFontSizeReached, setMaxFontSizeReached] = React.useState(false)
-
-    const handleFontSizeChange = React.useCallback((increase = true) => {
-        if (increase && !maxFontSizeReached) {
-            setFontSize(prev => prev + 1)
-            setMinFontSizeReached(false)
-            setMaxFontSizeReached(fontSize === MAX_FONT_SIZE)
-        } else if (!increase && !minFontSizeReached) {
-            setFontSize(prev => prev - 1)
-            setMaxFontSizeReached(false)
-            setMinFontSizeReached(fontSize === MIN_FONT_SIZE)
-        }
-    }, [fontSize, minFontSizeReached, maxFontSizeReached])
+    const {state, theme, zoom, error} = useSelector<RootState, any>(state => state.editor)
+    const [program, setProgram] = React.useState("")
 
     const handleKeyboardZoom = React.useCallback((e: KeyboardEvent) => {
         if (!e.ctrlKey && !e.metaKey) return
 
         if (["=", "+"].includes(e.key)) {
             e.preventDefault()
-            handleFontSizeChange()
+            dispatch(editorActions.increaseZoom())
         } else if (e.key === "-") {
             e.preventDefault()
-            handleFontSizeChange(false)
+            dispatch(editorActions.decreaseZoom())
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -48,19 +37,18 @@ export default function CodeEditor() {
         return () => document.removeEventListener("keydown", handleKeyboardZoom)
     }, [handleKeyboardZoom])
 
+    React.useEffect(() => {
+        if (state in [ProgramState.LOADING_RUN, ProgramState.LOADING_DEBUG]) {
+            dispatch(mipsActions.loadProgram(program))
+        }
+    }, [state, program])
+
     return <Stack height="100%" direction="column">
-        <CodeEditorToolbar
-            minFontSizeReached={minFontSizeReached}
-            maxFontSizeReached={maxFontSizeReached}
-            onFontSizeDecrease={() => handleFontSizeChange(false)}
-            onFontSizeIncrease={() => handleFontSizeChange()}
-            theme={theme}
-            setTheme={setTheme}
-        />
+        <CodeEditorToolbar />
         <Editor
             options={{
-                fontSize: fontSize,
-                theme: theme
+                fontSize: zoom,
+                theme: theme,
             }}
             onMount={(_editor, monaco) => {
                 monaco.languages.registerCompletionItemProvider("mips", {
@@ -281,7 +269,17 @@ export default function CodeEditor() {
                 monaco.editor.setTheme(themeNames[0])
                 monaco.editor.EditorOptions.fontSize.defaultValue = 16
             }}
-            theme="vs-dark"
+            value={program}
+            theme={theme}
+            onChange={(value) => setProgram(value!!)}
             defaultLanguage="mips"/>
+
+        <Snackbar open={error != null}
+                  autoHideDuration={5000}
+                  onClose={() => dispatch(editorActions.noticeError(null))}
+                  sx={{width: "calc(100% - 3em)"}}
+        >
+            <Alert severity="error" sx={{width: "100%"}}>{error instanceof Error ? error.message : error}</Alert>
+        </Snackbar>
     </Stack>
 }

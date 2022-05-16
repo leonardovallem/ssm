@@ -6,4 +6,8 @@ export default class Register {
         this.name = name
         this.value = value
     }
+
+    static deserialize(obj: {name: string, value: number}) {
+        return new Register(obj.name, obj.value)
+    }
 }

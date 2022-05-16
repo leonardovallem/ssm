@@ -7,7 +7,10 @@ import {
     MultDivInstruction
 } from "./InstructionTypes"
 import Register from "../components/Register"
-import Memory from "../components/Memory";
+import Memory from "../components/Memory"
+
+export class RequireMemory {}
+export class RequireRegister {}
 
 abstract class LogicArithmeticInstructionImpl implements LogicArithmeticInstruction {
     abstract opcode: number
@@ -37,26 +40,28 @@ abstract class MultDivInstructionImpl implements MultDivInstruction {
     abstract execute(): void
 }
 
-abstract class MemoryAccessInstructionImpl implements MemoryAccessInstruction {
+abstract class MemoryAccessInstructionImpl extends RequireMemory implements MemoryAccessInstruction {
     abstract opcode: number
-    address: Register
     data: Register
     offset: number
+    address: Register
 
-    constructor(address: Register, data: Register, offset: number) {
-        this.address = address
+    constructor(data: Register, address: Register, offset: number) {
+        super()
         this.data = data
         this.offset = offset
+        this.address = address
     }
 
     abstract execute(mem: Memory | Register | null): void
 }
 
-abstract class MoveInstructionImpl implements MoveInstruction {
+abstract class MoveInstructionImpl extends RequireRegister implements MoveInstruction {
     abstract opcode: number
     destination: Register
 
     constructor(destination: Register) {
+        super()
         this.destination = destination
     }
 
@@ -330,43 +335,83 @@ export class BLE extends BranchInstructionImpl {
     }
 }
 
-const instructionSet: { [key: string]: any } = {
-    ADD: ADD,       // add $r, $r, $r
-    ADDI: ADDI,     // addi $r, $r, i
-    ADDU: ADDU,     // addu $r, $r, $r
-    ADDIU: ADDIU,   // addiu $r, $r, i
-    SUB: SUB,       // sub $r, $r, $r
-    SUBU: SUBU,     // subu $r, $r, $r
-    MUL: MUL,       // mul $r, $r, $r
-    AND: AND,       // and $r, $r, $r
-    ANDI: ANDI,     // andi $r, $r, i
-    OR: OR,         // or $r, $r, $r
-    ORI: ORI,       // ori $r, $r, i
-    SLL: SLL,       // sll $r, $r, $r
-    SRL: SRL,       // srl $r, $r, $r
-    SLT: SLT,       // slt $r, $r, $r
-    SLTI: SLTI,     // slti $r, $r, i
-    MULT: MULT,     // mult $r, $r
-    DIV: DIV,       // div $r, $r
-    LW: LW,         // lw $r, i($r)
-    SW: SW,         // lw $r, i($r)
-    MFHI: MFHI,     // mfhi $r
-    MFLO: MFLO,     // mflo $r
-    J: J,           // j i
-    JR: JR,         // jr $r
-    JAL: JAL,       // jal i
-    BEQ: BEQ,       // beq $r, $r, i
-    BNE: BNE,       // bne $r, $r, i
-    BGT: BGT,       // bgt $r, $r, i
-    BGE: BGE,       // bge $r, $r, i
-    BLT: BLT,       // blt $r, $r, i
-    BLE: BLE,       // ble $r, $r, i
+interface InstructionSet {
+    ADD: Function
+    ADDI: Function
+    ADDU: Function
+    ADDIU: Function
+    SUB: Function
+    SUBU: Function
+    MUL: Function
+    AND: Function
+    ANDI: Function
+    OR: Function
+    ORI: Function
+    SLL: Function
+    SRL: Function
+    SLT: Function
+    SLTI: Function
+    MULT: Function
+    DIV: Function
+    LW: Function
+    SW: Function
+    MFHI: Function
+    MFLO: Function
+    J: Function
+    JR: Function
+    JAL: Function
+    BEQ: Function
+    BNE: Function
+    BGT: Function
+    BGE: Function
+    BLT: Function
+    BLE: Function
+    isJump: (inst: Instruction) => boolean
+    isBranch: (inst: Instruction) => boolean
+    isLA: (inst: Instruction) => boolean
+    isMultDiv: (inst: Instruction) => boolean
+    isMove: (inst: Instruction) => boolean
+    isLS: (inst: Instruction) => boolean
+}
+
+const instructionSet: InstructionSet = {
+    ADD: ADD,       // add $r, $r, $r       4
+    ADDI: ADDI,     // addi $r, $r, i       4
+    ADDU: ADDU,     // addu $r, $r, $r      4
+    ADDIU: ADDIU,   // addiu $r, $r, i      4
+    SUB: SUB,       // sub $r, $r, $r       4
+    SUBU: SUBU,     // subu $r, $r, $r      4
+    MUL: MUL,       // mul $r, $r, $r       4
+    AND: AND,       // and $r, $r, $r       4
+    ANDI: ANDI,     // andi $r, $r, i       4
+    OR: OR,         // or $r, $r, $r        4
+    ORI: ORI,       // ori $r, $r, i        4
+    SLL: SLL,       // sll $r, $r, $r       4
+    SRL: SRL,       // srl $r, $r, $r       4
+    SLT: SLT,       // slt $r, $r, $r       4
+    SLTI: SLTI,     // slti $r, $r, i       4
+    MULT: MULT,     // mult $r, $r           3
+    DIV: DIV,       // div $r, $r            3
+    LW: LW,         // lw $r, i($r)          3
+    SW: SW,         // lw $r, i($r)          3
+    MFHI: MFHI,     // mfhi $r                2
+    MFLO: MFLO,     // mflo $r                2
+    J: J,           // j i                    2
+    JR: JR,         // jr $r                  2
+    JAL: JAL,       // jal i                  2
+    BEQ: BEQ,       // beq $r, $r, i        4
+    BNE: BNE,       // bne $r, $r, i        4
+    BGT: BGT,       // bgt $r, $r, i        4
+    BGE: BGE,       // bge $r, $r, i        4
+    BLT: BLT,       // blt $r, $r, i        4
+    BLE: BLE,       // ble $r, $r, i        4
 
     isJump: (instruction: Instruction) => instruction instanceof JumpInstructionImpl,
     isBranch: (instruction: Instruction) => instruction instanceof BranchInstructionImpl,
     isLA: (instruction: Instruction) => instruction instanceof LogicArithmeticInstructionImpl,
     isMultDiv: (instruction: Instruction) => instruction instanceof MultDivInstructionImpl,
     isMove: (instruction: Instruction) => instruction instanceof MoveInstructionImpl,
+    isLS: (instruction: Instruction) => instruction instanceof MemoryAccessInstructionImpl,
 }
 
 export default instructionSet

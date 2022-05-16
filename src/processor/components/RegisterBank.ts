@@ -1,18 +1,13 @@
 import Register from "./Register"
-import Pair from "../../util/Pair"
 
 export default class RegisterBank {
-
-    private registerNames: Array<Pair<string, number>>
-    private readonly registers: Array<Register>
-    private especialRegisters: Array<Register>
+    registers: Array<Register>
+    private byName: { [name: string]: number } = {}
 
     constructor() {
-        this.especialRegisters = [new Register("$hi"), new Register("$lo")]
-
         this.registers = [
             new Register("$zero"),
-            new Register("at"),
+            new Register("$at"),
             new Register("$v0"),
             new Register("$v1"),
         ]
@@ -28,21 +23,23 @@ export default class RegisterBank {
             new Register("$sp"),
             new Register("$fp"),
             new Register("$ra"),
+            new Register("$hi"),
+            new Register("$lo")
         )
 
-        this.registerNames = this.registers.map((reg, index) => {
-            return new Pair(reg.name.substring(1).toUpperCase(), index)
+        this.registers.forEach((reg, index) => {
+            this.byName[reg.name] = index
         })
     }
 
-    getByName(name: string) {
-        const formatted = name.toUpperCase()
-        if (formatted === "HI") return this.especialRegisters[0]
-        if (formatted === "LO") return this.especialRegisters[0]
-
-        const instruction = this.registerNames.find(pair => pair.first.toUpperCase() === formatted)
-        if (!instruction) throw Error("Unknown register " + name)
-
-        return this.registers[instruction.second]
+    update(updated: Array<{name: string, value: number}>) {
+        this.registers = updated.map(obj => new Register(obj.name, obj.value))
     }
+
+    getByName(name: string) {
+        if (!(name in this.byName)) throw Error("Unknown register " + name)
+        return this.registers[this.byName[name]]
+    }
+
+    serialize = () => this.registers.map(reg => ({name: reg.name, value: reg.value}))
 }
