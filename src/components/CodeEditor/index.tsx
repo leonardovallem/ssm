@@ -17,6 +17,7 @@ export default function CodeEditor() {
     const themes = Object.values(MonacoThemes)
 
     const {state, theme, zoom, error} = useSelector<RootState, any>(state => state.editor)
+    const {PC} = useSelector<RootState, any>(state => state.mips)
     const [program, setProgram] = React.useState("")
 
     const handleKeyboardZoom = React.useCallback((e: KeyboardEvent) => {
@@ -38,10 +39,17 @@ export default function CodeEditor() {
     }, [handleKeyboardZoom])
 
     React.useEffect(() => {
-        if (state in [ProgramState.LOADING_RUN, ProgramState.LOADING_DEBUG]) {
+        if (state === ProgramState.LOADING_RUN || state === ProgramState.LOADING_DEBUG) {
             dispatch(mipsActions.loadProgram(program))
+            if (state === ProgramState.LOADING_RUN) dispatch(editorActions.programRunning())
+            else dispatch(editorActions.programDebugging())
         }
     }, [state, program])
+
+    function getErrorMessage() {
+        const err = error instanceof Error ? error.message : error
+        return `#${PC + 1} - ${err}`
+    }
 
     return <Stack height="100%" direction="column">
         <CodeEditorToolbar />
@@ -279,7 +287,7 @@ export default function CodeEditor() {
                   onClose={() => dispatch(editorActions.noticeError(null))}
                   sx={{width: "calc(100% - 3em)"}}
         >
-            <Alert severity="error" sx={{width: "100%"}}>{error instanceof Error ? error.message : error}</Alert>
+            <Alert severity="error" sx={{width: "100%"}}>{getErrorMessage()}</Alert>
         </Snackbar>
     </Stack>
 }

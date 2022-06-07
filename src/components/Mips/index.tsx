@@ -4,58 +4,79 @@ import MipsEngine from "../../processor/MIPS"
 import {RootState} from "../../store"
 import ProgramState from "../../util/EditorState"
 import {editorActions} from "../../store/features/editor"
-import {mipsActions} from "../../store/features/mips";
+import {mipsActions} from "../../store/features/mips"
 
 export default function Mips() {
     const dispatch = useDispatch()
     const mipsEngine = new MipsEngine()
 
-    mipsEngine.afterInstruction = () => {
-        dispatch(mipsActions.updateRegisterBank(mipsEngine.registerBank.registers))
-        dispatch(mipsActions.updateMemory(mipsEngine.memory.table))
-        dispatch(mipsActions.nextInstruction())
-    }
-    mipsEngine.afterExecution = () => {
-        dispatch(editorActions.stopExecution())
+    function configureExecution() {
+        mipsEngine.loadProgram(mips.program)
+
+        mipsEngine.afterInstruction = () => {
+            dispatch(mipsActions.updateRegisterBank(mipsEngine.registerBank.registers))
+            dispatch(mipsActions.updateMemory(mipsEngine.memory))
+            dispatch(mipsActions.nextInstruction())
+        }
+        mipsEngine.afterExecution = () => {
+            dispatch(mipsActions.updateRegisterBank(mipsEngine.registerBank.registers))
+            dispatch(mipsActions.updateMemory(mipsEngine.memory))
+            dispatch(editorActions.stopExecution())
+        }
     }
 
     const {mips, editor} = useSelector<RootState, any>((state) => state)
 
     function loadComponents() {
-        mipsEngine.memory.update(mips.memory)
+        mipsEngine.memory = mips.memory
         mipsEngine.registerBank.update(mips.registerBank)
         mipsEngine.PC = mips.PC
     }
 
+    function loadProgram(after: () => void = () => {
+    }) {
+        if ((mips.program?.trim() ?? "") === "") {
+            dispatch(editorActions.noticeError("Code is empty"))
+            dispatch(editorActions.stopExecution())
+            return
+        }
+
+        mipsEngine.loadProgram(mips.program)
+        after()
+    }
+
     useEffect(() => {
+        try {
+            if (mips.program) configureExecution()
+        } catch (e: any) {
+            // @ts-ignore
+            if (window.debug) console.log(e)
+            dispatch(editorActions.noticeError(e))
+            dispatch(editorActions.stopExecution())
+        }
+
         switch (editor.state) {
             case ProgramState.LOADING_RUN:
             case ProgramState.LOADING_DEBUG:
                 dispatch(mipsActions.reset())
                 loadComponents()
-
+                break
+            case ProgramState.RUNNING:
                 try {
-                    if((mips.program?.trim() ?? "") === "") {
-                        dispatch(editorActions.noticeError("Code is empty"))
-                        dispatch(editorActions.stopExecution())
-                        return
-                    }
-
-                    mipsEngine.loadProgram(mips.program)
-                    if (editor.state === ProgramState.LOADING_RUN) {
-                        dispatch(editorActions.programRunning())
-                        mipsEngine.executeProgram()
-                    }
-                    else dispatch(editorActions.programDebugging())
-                } catch(e: any) {
+                    loadProgram(() => mipsEngine.executeProgram())
+                } catch (e: any) {
+                    // @ts-ignore
+                    if (window.debug) console.log(e)
                     dispatch(editorActions.noticeError(e))
                     dispatch(editorActions.stopExecution())
                 }
-
+                break
+            case ProgramState.DEBUGGING:
+            case ProgramState.WAITING_FOR_NEXT_INSTRUCTION:
+                // idle
                 break
             case ProgramState.EXECUTE_NEXT_INSTRUCTION:
-                mipsEngine.executeNextInstruction()
-                dispatch(editorActions.programDebugging())
+                if (mipsEngine.executeNextInstruction()) dispatch(editorActions.waitingNextInstruction())
         }
     }, [mips, editor])
 

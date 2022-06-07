@@ -4,7 +4,8 @@ enum ProgramState {
     LOADING_DEBUG,
     RUNNING,
     DEBUGGING,
-    EXECUTE_NEXT_INSTRUCTION
+    WAITING_FOR_NEXT_INSTRUCTION,
+    EXECUTE_NEXT_INSTRUCTION,
 }
 
 export default ProgramState

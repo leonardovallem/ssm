@@ -9,12 +9,15 @@ import TableRow from "@mui/material/TableRow"
 import {useSelector} from "react-redux"
 import {RootState} from "../../store"
 import Register from "../../processor/components/Register"
+import {DisplayHex} from "../../util/StringUtils"
+
+DisplayHex()
 
 export default function RegisterBank() {
     const {registerBank} = useSelector<RootState, any>(state => state.mips)
 
     return (
-        <Paper sx={{width: '100%', overflow: 'hidden'}}>
+        <Paper sx={{width: "100%", overflow: "hidden"}}>
             <TableContainer sx={{maxHeight: 390}}>
                 <Table stickyHeader aria-label="sticky table">
                     <TableHead>
@@ -46,7 +49,10 @@ export default function RegisterBank() {
                                         {register.name}
                                     </TableCell>
                                     <TableCell align="center">
-                                        {"0x" + register.value.toString(16).toUpperCase()}
+                                        {
+                                            // @ts-ignore
+                                            register.value.displayHex()
+                                        }
                                     </TableCell>
                                 </TableRow>
                             )

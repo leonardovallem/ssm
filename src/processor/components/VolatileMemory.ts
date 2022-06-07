@@ -1,4 +1,6 @@
-export default class Memory {
+import MipsMemory from "./MipsMemory"
+
+export default class VolatileMemory implements MipsMemory {
     size: number
     table: Array<number>
 

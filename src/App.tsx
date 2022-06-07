@@ -3,10 +3,12 @@ import RGL, {WidthProvider} from "react-grid-layout"
 import CodeEditor from "./components/CodeEditor"
 import RegisterBank from "./components/RegisterBank"
 import Mips from "./components/Mips"
+import Memory from "./components/Memory"
 
 import "/node_modules/react-grid-layout/css/styles.css"
 import "/node_modules/react-resizable/css/styles.css"
 import "./App.css"
+import ReorderBuffer from "./components/ReorderBuffer"
 
 const GridLayout = WidthProvider(RGL)
 
@@ -16,7 +18,8 @@ function App() {
     const layout = [
         {i: "a", x: 0, y: 0, w: 9, h: 12, minW: 5, minH: 5, isBounded: true, resizeHandles},
         {i: "b", x: 9, y: 0, w: 3, h: 12, minH: 7, maxH: 15, isBounded: true, resizeHandles},
-        {i: "c", x: 4, y: 0, w: 1, h: 2, isBounded: true, resizeHandles}
+        {i: "c", x: 9, y: 13, w: 3, h: 12, minH: 7, maxH: 15, isBounded: true, resizeHandles},
+        {i: "d", x: 0, y: 13, w: 6, h: 12, minH: 7, maxH: 15, isBounded: true, resizeHandles},
     ]
 
     return <>
@@ -30,6 +33,8 @@ function App() {
         >
             <div key="a"><CodeEditor/></div>
             <div key="b"><RegisterBank/></div>
+            <div key="c"><Memory/></div>
+            <div key="d"><ReorderBuffer/></div>
         </GridLayout>
         <Mips/>
     </>

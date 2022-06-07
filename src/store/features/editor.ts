@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {createSlice} from "@reduxjs/toolkit"
 import ProgramState from "../../util/EditorState"
 
@@ -10,24 +11,32 @@ const editor = createSlice({
         error: null
     },
     reducers: {
-        loadProgram: (state) => {
-            // console.log("[EDITOR] Program loaded")
+        loadRun: (state) => {
+            if (window.debug) console.log("[EDITOR] Program loaded: RUN")
             state.state = ProgramState.LOADING_RUN
         },
+        loadDebug: (state) => {
+            if (window.debug) console.log("[EDITOR] Program loaded: DEBUG")
+            state.state = ProgramState.LOADING_DEBUG
+        },
         programRunning: (state) => {
-            // console.log("[EDITOR] Program running")
+            if (window.debug) console.log("[EDITOR] Program running")
             state.state = ProgramState.RUNNING
         },
         programDebugging: (state) => {
-            // console.log("[EDITOR] Program debugging")
+            if (window.debug) console.log("[EDITOR] Program debugging")
             state.state = ProgramState.DEBUGGING
         },
+        waitingNextInstruction: (state) => {
+            if (window.debug) console.log("[EDITOR] Program waiting for next instruction")
+            state.state = ProgramState.WAITING_FOR_NEXT_INSTRUCTION
+        },
         executeNextInstruction: (state) => {
-            // console.log("[EDITOR] Executing next instruction")
+            if (window.debug) console.log("[EDITOR] Executing next instruction")
             state.state = ProgramState.EXECUTE_NEXT_INSTRUCTION
         },
         stopExecution: (state) => {
-            // console.log("[EDITOR] Stopping execution")
+            if (window.debug) console.log("[EDITOR] Stopping execution")
             state.state = ProgramState.NOT_RUNNING
         },
         noticeError: (state, action) => {

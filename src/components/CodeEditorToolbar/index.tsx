@@ -11,14 +11,14 @@ import StopIcon from "@mui/icons-material/Dangerous"
 import StepOverIcon from "@mui/icons-material/East"
 import DebugIcon from "@mui/icons-material/BugReport"
 import ClearIcon from "@mui/icons-material/ClearAll"
-import {Fade, FormControl, InputLabel, LinearProgress, MenuItem, Select, Stack} from "@mui/material"
+import {Fade, FormControl, InputLabel, LinearProgress, MenuItem, Select, Stack, Tooltip} from "@mui/material"
 import {useDispatch, useSelector} from "react-redux"
 import MonacoThemes from "../../util/MonacoThemes"
 import ProgramState from "../../util/EditorState"
 import {RootState} from "../../store"
 import {editorActions} from "../../store/features/editor"
 import "./style.css"
-import {mipsActions} from "../../store/features/mips";
+import {mipsActions} from "../../store/features/mips"
 
 const MAX_FONT_SIZE = 48
 const MIN_FONT_SIZE = 8
@@ -65,58 +65,68 @@ export default function CodeEditorToolbar() {
                                alignItems="center"
                                flexGrow={1}
                         >
-                            <IconButton aria-label="clear memory and registers"
-                                        component="span"
-                                        onClick={() => dispatch(mipsActions.reset())}
-                                        style={{marginRight: "2em"}}
-                            >
-                                <ClearIcon color="secondary"
-                                           fontSize="large"/>
-                            </IconButton>
+                            <Tooltip title="Clear memory and registers">
+                                <IconButton aria-label="clear memory and registers"
+                                            component="span"
+                                            onClick={() => dispatch(mipsActions.reset())}
+                                            style={{marginRight: "2em"}}
+                                >
+                                    <ClearIcon color="secondary"
+                                               fontSize="large"/>
+                                </IconButton>
+                            </Tooltip>
 
-                            <Fade in={state === ProgramState.NOT_RUNNING || state === ProgramState.DEBUGGING}>
+                            <Fade in={state === ProgramState.NOT_RUNNING || state === ProgramState.DEBUGGING || state === ProgramState.WAITING_FOR_NEXT_INSTRUCTION}>
+                                <Tooltip title={state === ProgramState.NOT_RUNNING
+                                    ? "Run program"
+                                    : "Execute next instruction"}>
+                                    <IconButton aria-label="run program"
+                                                component="span"
+                                                onClick={() => {
+                                                    if (state === ProgramState.NOT_RUNNING) {
+                                                        dispatch(editorActions.loadRun())
+                                                    } else {
+                                                        dispatch(editorActions.executeNextInstruction())
+                                                    }
+                                                }}
+                                    >
+                                        {state === ProgramState.NOT_RUNNING
+                                            ? <PlayIcon color="success"
+                                                        fontSize="large"
+                                            /> : null
+                                        }
+
+                                        {state === ProgramState.DEBUGGING || state === ProgramState.WAITING_FOR_NEXT_INSTRUCTION
+                                            ? <StepOverIcon color="primary"
+                                                            fontSize="large"
+                                            /> : null
+                                        }
+                                    </IconButton>
+                                </Tooltip>
+                            </Fade>
+
+                            <Tooltip title={state === ProgramState.NOT_RUNNING
+                                ? "Debug program"
+                                : "Stop execution"}>
                                 <IconButton aria-label="run program"
                                             component="span"
                                             onClick={() => {
                                                 if (state === ProgramState.NOT_RUNNING) {
-                                                    dispatch(editorActions.loadProgram())
+                                                    dispatch(editorActions.loadDebug())
                                                 } else {
-                                                    dispatch(editorActions.executeNextInstruction())
+                                                    dispatch(editorActions.stopExecution())
                                                 }
                                             }}
                                 >
-                                    {state === ProgramState.NOT_RUNNING
-                                        ? <PlayIcon color="success"
-                                                    fontSize="large"
-                                        /> : null
-                                    }
-
-                                    {state === ProgramState.DEBUGGING
-                                        ? <StepOverIcon color="primary"
-                                                        fontSize="large"
-                                        /> : null
+                                    {
+                                        state === ProgramState.NOT_RUNNING
+                                            ? <DebugIcon color="success"
+                                                         fontSize="large"/>
+                                            : <StopIcon color="error"
+                                                        fontSize="large"/>
                                     }
                                 </IconButton>
-                            </Fade>
-
-                            <IconButton aria-label="run program"
-                                        component="span"
-                                        onClick={() => {
-                                            if (state === ProgramState.NOT_RUNNING) {
-                                                dispatch(editorActions.loadProgram())
-                                            } else {
-                                                dispatch(editorActions.stopExecution())
-                                            }
-                                        }}
-                            >
-                                {
-                                    state === ProgramState.NOT_RUNNING
-                                        ? <DebugIcon color="success"
-                                                     fontSize="large"/>
-                                        : <StopIcon color="error"
-                                                    fontSize="large"/>
-                                }
-                            </IconButton>
+                            </Tooltip>
                         </Stack>
                     </Stack>
                 </Toolbar>
