@@ -60,7 +60,7 @@ export default function ReorderBuffer() {
                                     {normalizeBoolean(buffer.busy)}
                                 </TableCell>
                                 <TableCell align="center">
-                                    {buffer.instruction.toString()}
+                                    {/*{buffer.instruction.toString()}*/}
                                 </TableCell>
                                 <TableCell align="center">
                                     {buffer.state.toString()}

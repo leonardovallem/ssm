@@ -5,6 +5,7 @@ import MipsMemory from "./components/MipsMemory"
 import PersistentMemory from "./components/PersistentMemory"
 import InstructionSet from "./instructions/InstructionSet"
 import {getHighAndLow} from "../util/NumberUtils"
+import {normalizeNumber} from "../util/StringUtils";
 
 export default class MIPS {
     memory: MipsMemory
@@ -215,11 +216,15 @@ class RuntimeEngine {
             switch (instruction[0]) {
                 case "MULT": {
                     const reg2 = this.registerBank!.getByName(instruction[2])
+                    const product = (BigInt(reg1.value) * BigInt(reg2.value)).toString(16)
 
-                    const [hi, lo] = getHighAndLow(reg1.value * reg2.value)
+                    console.log(product)
 
-                    this.registerBank!.getByName("$hi").value = hi
-                    this.registerBank!.getByName("$lo").value = lo
+                    const hi = normalizeNumber(product).substring(0, product.length / 2)
+                    const lo = normalizeNumber(product).substring(product.length / 2 + 1)
+
+                    this.registerBank!.getByName("$hi").value = Number("0x" + hi)
+                    this.registerBank!.getByName("$lo").value = Number("0x" + lo)
                     break
                 }
                 case "DIV": {

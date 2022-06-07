@@ -11,16 +11,18 @@ export default class InstructionParser {
 
     parse() {
         this.input.split("\n").forEach(line => {
-            const splitted = line.replace(/#.*$/, "")
+            if (!line) return
+
+            const split = line.replace(/#.*$/, "")
                 .replace(/\s+/g, " ")
                 .trim()
                 .replaceAll(", ", " ")
                 .split(/\s/g)
-            splitted[0] = splitted[0].toUpperCase()
+            split[0] = split[0].toUpperCase()
 
-            if (!(splitted[0] in InstructionSet)) throw Error("Unknown instruction " + splitted[0])
+            if (!(split[0] in InstructionSet)) throw Error("Unknown instruction " + split[0])
 
-            this.program.push(splitted.join(" "))
+            this.program.push(split.join(" "))
         })
 
         return this.program

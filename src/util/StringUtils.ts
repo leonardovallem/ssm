@@ -9,4 +9,9 @@ export function DisplayHex() {
     }
 }
 
+export function normalizeNumber(number: string, size: number = 8) {
+    while (number.length < size) number = "0" + number
+    return number
+}
+
 export const normalizeBoolean = (value: Boolean) => value ? "Yes" : "No"

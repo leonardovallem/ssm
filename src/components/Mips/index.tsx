@@ -78,7 +78,7 @@ export default function Mips() {
             case ProgramState.EXECUTE_NEXT_INSTRUCTION:
                 if (mipsEngine.executeNextInstruction()) dispatch(editorActions.waitingNextInstruction())
         }
-    }, [mips, editor])
+    }, [editor.state])
 
     return <></>
 }
