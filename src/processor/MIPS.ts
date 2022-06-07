@@ -14,10 +14,8 @@ export default class MIPS {
     PC: number = 0
     engine: RuntimeEngine
 
-    afterInstruction: () => void = () => {
-    }
-    afterExecution: () => void = () => {
-    }
+    afterInstruction: () => void = () => {}
+    afterExecution: () => void = () => {}
 
     static MEMORY_SIZE = Math.pow(2, 8)    //  reduced to 2^8 for performance reasons
     private static TEXT_SEGMENT_ADDRESS = 0x00400000
@@ -35,6 +33,15 @@ export default class MIPS {
             .fromText(program)
             .parse()
         this.engine.setInstructions(this.program)
+    }
+
+    setPC(pc: number) {
+        this.PC = pc
+        this.engine.pc = pc
+    }
+
+    setCycles(cycles: number) {
+        this.engine.cycles = cycles
     }
 
     executeNextInstruction(): boolean {
@@ -56,8 +63,8 @@ class RuntimeEngine {
     private instructions: Array<string> | null = null
     private labels: { [label: string]: number } | null = null
     private registerBank: RegisterBank | null = null
-    private pc: number = 0
-    private cycles: number = 0
+    pc: number = 0
+    cycles: number = 0
 
     setInstructions(instructions: Array<string>) {
         this.instructions = instructions
@@ -217,8 +224,6 @@ class RuntimeEngine {
                 case "MULT": {
                     const reg2 = this.registerBank!.getByName(instruction[2])
                     const product = (BigInt(reg1.value) * BigInt(reg2.value)).toString(16)
-
-                    console.log(product)
 
                     const hi = normalizeNumber(product).substring(0, product.length / 2)
                     const lo = normalizeNumber(product).substring(product.length / 2 + 1)

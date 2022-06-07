@@ -1,3 +1,4 @@
+import {Observer} from "../../../util/Observer";
 
 class Item {
     name: string
@@ -21,6 +22,11 @@ class Item {
     }
 }
 
-export default class ReservationStations {
+export default class ReservationStations implements Observer<number> {
+    cdb: number = 0
     stations: Array<Item> = []
+
+    update(newValue: number) {
+        this.cdb = newValue
+    }
 }

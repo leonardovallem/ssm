@@ -4,7 +4,12 @@ export default class RegisterBank {
     registers: Array<Register>
     private byName: { [name: string]: number } = {}
 
-    constructor() {
+    constructor(values: Array<{name: string, value: string}> | null = null) {
+        if (values) {
+            this.registers = values.map((obj) => Register.deserialize(obj))
+            return
+        }
+
         this.registers = [
             new Register("$zero"),
             new Register("$at"),

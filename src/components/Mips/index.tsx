@@ -11,12 +11,12 @@ export default function Mips() {
     const mipsEngine = new MipsEngine()
 
     function configureExecution() {
-        mipsEngine.loadProgram(mips.program)
+        loadComponents()
 
         mipsEngine.afterInstruction = () => {
             dispatch(mipsActions.updateRegisterBank(mipsEngine.registerBank.registers))
             dispatch(mipsActions.updateMemory(mipsEngine.memory))
-            dispatch(mipsActions.nextInstruction())
+            dispatch(mipsActions.updateMetrics(mipsEngine.engine))
         }
         mipsEngine.afterExecution = () => {
             dispatch(mipsActions.updateRegisterBank(mipsEngine.registerBank.registers))
@@ -30,7 +30,9 @@ export default function Mips() {
     function loadComponents() {
         mipsEngine.memory = mips.memory
         mipsEngine.registerBank.update(mips.registerBank)
-        mipsEngine.PC = mips.PC
+        mipsEngine.loadProgram(mips.program)
+        mipsEngine.setPC(mips.PC)
+        mipsEngine.setCycles(mips.cycles)
     }
 
     function loadProgram(after: () => void = () => {

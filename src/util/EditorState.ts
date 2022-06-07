@@ -8,4 +8,10 @@ enum ProgramState {
     EXECUTE_NEXT_INSTRUCTION,
 }
 
+export const isInExecution = (state: ProgramState) => ![
+    ProgramState.NOT_RUNNING,
+    ProgramState.LOADING_RUN,
+    ProgramState.LOADING_DEBUG
+].includes(state)
+
 export default ProgramState

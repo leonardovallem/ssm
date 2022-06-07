@@ -11,10 +11,10 @@ import StopIcon from "@mui/icons-material/Dangerous"
 import StepOverIcon from "@mui/icons-material/East"
 import DebugIcon from "@mui/icons-material/BugReport"
 import ClearIcon from "@mui/icons-material/ClearAll"
-import {Fade, FormControl, InputLabel, LinearProgress, MenuItem, Select, Stack, Tooltip} from "@mui/material"
+import {Chip, Fade, FormControl, InputLabel, LinearProgress, MenuItem, Select, Stack, Tooltip} from "@mui/material"
 import {useDispatch, useSelector} from "react-redux"
 import MonacoThemes from "../../util/MonacoThemes"
-import ProgramState from "../../util/EditorState"
+import ProgramState, {isInExecution} from "../../util/EditorState"
 import {RootState} from "../../store"
 import {editorActions} from "../../store/features/editor"
 import "./style.css"
@@ -26,6 +26,7 @@ const MIN_FONT_SIZE = 8
 export default function CodeEditorToolbar() {
     const dispatch = useDispatch()
     const {state, zoom, error} = useSelector<RootState, any>(state => state.editor)
+    const {cycles} = useSelector<RootState, any>(state => state.mips)
 
     return (
         <Box sx={{flexGrow: 1}}>
@@ -76,7 +77,8 @@ export default function CodeEditorToolbar() {
                                 </IconButton>
                             </Tooltip>
 
-                            <Fade in={state === ProgramState.NOT_RUNNING || state === ProgramState.DEBUGGING || state === ProgramState.WAITING_FOR_NEXT_INSTRUCTION}>
+                            <Fade
+                                in={state === ProgramState.NOT_RUNNING || state === ProgramState.DEBUGGING || state === ProgramState.WAITING_FOR_NEXT_INSTRUCTION}>
                                 <Tooltip title={state === ProgramState.NOT_RUNNING
                                     ? "Run program"
                                     : "Execute next instruction"}>
@@ -127,6 +129,11 @@ export default function CodeEditorToolbar() {
                                     }
                                 </IconButton>
                             </Tooltip>
+
+                            {
+                                (isInExecution(state) || cycles !== 0) &&
+                                <Chip label={`Cycles: ${cycles}`}/> // TODO add button to increase single cycle
+                            }
                         </Stack>
                     </Stack>
                 </Toolbar>

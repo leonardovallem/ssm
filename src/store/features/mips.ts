@@ -11,6 +11,7 @@ const mips = createSlice({
         registerBank: new RegisterBank().serialize(),
         memory: new VolatileMemory(MIPS.MEMORY_SIZE),
         PC: 0,
+        cycles: 0
     },
     reducers: {
         loadProgram: (state, action) => {
@@ -25,14 +26,17 @@ const mips = createSlice({
             if (window.debug) console.log("[MIPS] Updating memory")
             state.memory = action.payload
         },
-        nextInstruction: (state) => {
+        updateMetrics: (state, action) => {
             if (window.debug) console.log("[MIPS] Executing next instruction")
-            state.PC++
+            const {pc, cycles} = action.payload
+            state.PC = pc
+            state.cycles = cycles
         },
         reset: (state) => {
             state.registerBank = new RegisterBank().serialize()
             state.memory = new VolatileMemory(MIPS.MEMORY_SIZE)
             state.PC = 0
+            state.cycles = 0
         }
     },
 })
