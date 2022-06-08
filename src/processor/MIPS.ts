@@ -10,13 +10,12 @@ import {normalizeNumber} from "../util/StringUtils";
 export default class MIPS {
     memory: MipsMemory
     registerBank: RegisterBank
-    program: Array<string> = []
-    PC: number = 0
     engine: RuntimeEngine
 
     afterInstruction: () => void = () => {}
     afterExecution: () => void = () => {}
 
+    // TODO remove lines below
     static MEMORY_SIZE = Math.pow(2, 8)    //  reduced to 2^8 for performance reasons
     private static TEXT_SEGMENT_ADDRESS = 0x00400000
     private static DATA_SEGMENT_ADDRESS = 0x10000000
@@ -28,15 +27,19 @@ export default class MIPS {
             .setRegisterBank(this.registerBank)
     }
 
-    loadProgram(program: string) {
-        this.program = new InstructionParser()
-            .fromText(program)
+    loadProgram(text: string) {
+        const [labels, instructions] = new InstructionParser()
+            .fromText(text)
             .parse()
-        this.engine.setInstructions(this.program)
+
+        console.log(labels)
+        console.log(instructions)
+
+        this.engine.setLabels(labels)
+        this.engine.setInstructions(instructions)
     }
 
     setPC(pc: number) {
-        this.PC = pc
         this.engine.pc = pc
     }
 

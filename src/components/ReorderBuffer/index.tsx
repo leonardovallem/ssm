@@ -22,7 +22,7 @@ export default function ReorderBuffer() {
                             style={{backgroundColor: "#414141", color: "white"}}
                             colSpan={7}
                         >
-                            ReorderBuffer
+                            Reorder Buffer
                         </TableCell>
                     </TableRow>
                     <TableRow>

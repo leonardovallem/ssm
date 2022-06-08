@@ -5,6 +5,28 @@ interface Instruction {
     op3: boolean
 }
 
+export const InstructionsThatUpdateFirstRegister = [
+    "ADD",
+    "ADDI",
+    "ADDU",
+    "ADDIU",
+    "SUB",
+    "SUBU",
+    "MUL",
+    "AND",
+    "ANDI",
+    "OR",
+    "ORI",
+    "SRL",
+    "SLL",
+    "SLT",
+    "SLTI",
+    "LI",
+    "LW",
+    "MFHI",
+    "MFLO"
+]
+
 export const ThreeOperandsInstructions: { [name: string]: Instruction } = {
     ADD: {
         "cycles": 2,
