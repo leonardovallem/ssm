@@ -1,7 +1,7 @@
-# Getting Started with Create React App
-
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-
+# Simulador do algoritmo de Tomasulo
+### Introdução
+Esse é um projeto para disciplina de Arquitetura de Computadores 3, do curso de Ciência da Computação da Puc Minas.
+Ele é um simulador do algoritmo de Tomasulo, implementado em REACT com TypeScript.
 ## Available Scripts
 
 In the project directory, you can run:
