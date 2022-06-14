@@ -6,10 +6,11 @@ A MIPS simulator with a superscalar approach, with dynamic scheduling using Toma
 
 You can find the executable in the Releases section.
 
-[Windows](/releases/latest)
+[Windows](https://github.com/leonardovallem/ssm/releases/tag/windows.0.1.0)
 
-### Getting started
+### Build
 
+You can
 To run it locally in your browser, first install the project's dependencies with:
 
     npm i
