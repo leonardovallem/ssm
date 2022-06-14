@@ -47,7 +47,7 @@ export const isBranch = (instruction: Array<string>) => [
     "J",
     "JR",
     "JAL",
-]
+].includes(instruction[0])
 
 export const isLoad = (instruction: Array<string>) => instruction[0] === "LW"
 

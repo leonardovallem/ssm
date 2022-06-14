@@ -1,29 +1,66 @@
-import InstructionParser from "../../instructions/InstructionParser"
 import {InstructionsThatUpdateFirstRegister} from "../../instructions/InstructionSet"
 import {RegisterAliasTable} from "../RegisterBank"
+import ReservationStations from "./ReservationStations"
+import {randomUUID} from "../../../util/StringUtils";
 
-export default function fixHazards(program: Array<string>): Array<string> {
+export default function fixHazards(program: Array<Array<string> | { [label: string]: number }>): Array<Array<string>> {
     if (program.length === 0) return []
 
-    const prevInst = InstructionParser.splitInstruction(program[0])
-    const instructions: Array<string> = [prevInst.join(" ")]
+    const prevInst = getInstructionOrLabel(program[0])
+    const instructions: Array<Array<string>> = [prevInst]
     for (let i = 1; i < program.length; i++) {
-        const currInst = InstructionParser.splitInstruction(program[i])
-        const hazard = findWAWandWAR(currInst, prevInst)
+        const currInst = getInstructionOrLabel(program[i])
 
-        const instruction = RegisterAliasTable.parseHazard(currInst, hazard)
-        instructions.push(instruction.join(" "))
+        if (currInst.length === 1) {
+            instructions.push([currInst[0]])
+            continue
+        }
+
+        const hazards = findWAWandWAR(currInst, prevInst)
+        const instruction = RegisterAliasTable.parseHazards(currInst, hazards)
+        instructions.push(instruction)
     }
 
     return instructions
 }
 
+export function getHazardFixedInstruction(
+    program: Array<Array<string> | { [label: string]: number }>,
+    instruction: Array<string>
+): Array<Array<string>> {
+    if (program.length === 0) {
+        ReservationStations.insert(instruction)
+        return [instruction]
+    }
+
+    const instructions: Array<Array<string>> = program.map(obj => getInstructionOrLabel(obj))
+
+    let inst = getInstructionOrLabel(instruction)
+    const uuid = randomUUID()
+    if (inst.length > 1) {
+        for (let i = 0; i < instructions.length; i++) {
+            const hazards = findWAWandWAR(inst, instructions[i])
+            inst = RegisterAliasTable.parseHazards(inst, hazards, uuid)
+        }
+    }
+
+    instructions.push(inst)
+    return instructions
+}
+
+export function getInstructionOrLabel(instruction: Array<string> | { [label: string]: number }): Array<string> {
+    if (instruction instanceof Array) return [...instruction]
+    return Object.keys(instruction)
+}
+
 export const findWAWandWAR = (currInst: Array<string>, nextInstr: Array<string>) => {
     const regWAW = findWAW(currInst, nextInstr)
-    const regWAR = findWAR(currInst, nextInstr)
+    const regWAR = findWAR(nextInstr, currInst)
 
-    if (regWAW) return regWAW
-    return regWAR
+    const hazards = []
+    if (regWAW) hazards.push(regWAW)
+    if (regWAR) hazards.push(regWAR)
+    return hazards
 }
 
 function findRAW(inst1: Array<string>, inst2: Array<string>) {

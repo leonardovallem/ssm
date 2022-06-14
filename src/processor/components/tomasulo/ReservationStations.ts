@@ -2,9 +2,8 @@ import {Observer} from "../../../util/Observer"
 import {isAdd, isLoad, isMult, isStore} from "../../instructions/InstructionSet"
 import RegisterBank from "../RegisterBank"
 import FunctionalUnit from "./FunctionalUnit"
-import {normalizeNumber} from "../../../util/StringUtils";
-import {getHighAndLow} from "../../../util/NumberUtils";
-import {numberOfOperands, Operands} from "../../MIPS";
+import {getFirstReadRegister, getSecondReadRegister} from "../../instructions/InstructionParser"
+import Register from "../Register";
 
 export class ReservationStation {
     name: string
@@ -14,9 +13,9 @@ export class ReservationStation {
     vj?: number             // -
     qj?: string             // . reservation stations that are gonna produce the result
     qk?: string             // .
-    a?: number              // immediate value or calculated address
+    // a?: number              // immediate value or calculated address
 
-    constructor(name: string, busy: boolean = false, instruction?: string, vi?: number, vj?: number, qj?: string, qk?: string, a?: number) {
+    constructor(name: string, busy: boolean = false, instruction?: string, vi?: number, vj?: number, qj?: string, qk?: string) {
         this.name = name
         this.busy = busy
         this.instruction = instruction
@@ -24,7 +23,6 @@ export class ReservationStation {
         this.vj = vj
         this.qj = qj
         this.qk = qk
-        this.a = a
     }
 
     clear() {
@@ -34,7 +32,6 @@ export class ReservationStation {
         this.vj = undefined
         this.qj = undefined
         this.qk = undefined
-        this.a = undefined
     }
 
     receiveData(instruction: string, data: number) {
@@ -43,6 +40,21 @@ export class ReservationStation {
         else throw Error("No value in the Reservation Station is null")
 
         this.busy = true
+    }
+
+    insert(rs: {
+        instruction?: string,
+        vi?: number,
+        vj?: number,
+        qj?: string,
+        qk?: string
+    }) {
+        this.busy = true
+        this.instruction = rs.instruction
+        this.vi = rs.vi
+        this.vj = rs.vj
+        this.qj = rs.qj
+        this.qk = rs.qk
     }
 }
 
@@ -53,6 +65,10 @@ export class ReservationStations implements Observer<FunctionalUnit, number> {
     loadStations: { [name: string]: ReservationStation } = {}
     storeStations: { [name: string]: ReservationStation } = {}
     generalStations: { [name: string]: ReservationStation } = {}
+
+    queried: { [name: string]: ReservationStation } = {}
+    memo: { [name: string]: string } = {}
+    registers: { [name: string]: Register } = {}
 
     constructor(amount: number = 15) {
         this.init(amount)
@@ -97,7 +113,7 @@ export class ReservationStations implements Observer<FunctionalUnit, number> {
         }
     }
 
-    private getFreeSlotFromInstruction(instruction: Array<string>) {
+    private getFreeSlotFromInstruction(instruction: Array<string>): string {
         if (isAdd(instruction)) return this.getFreeSlot(FunctionalUnit.ADD)
         if (isMult(instruction)) return this.getFreeSlot(FunctionalUnit.MULT)
         if (isLoad(instruction)) return this.getFreeSlot(FunctionalUnit.LOAD)
@@ -106,165 +122,100 @@ export class ReservationStations implements Observer<FunctionalUnit, number> {
     }
 
     getFreeSlot(fu: FunctionalUnit) {
-        let rss: Array<ReservationStation> = []
+        let rss: Array<string> = []
 
         switch (fu) {
             case FunctionalUnit.ADD:
-                rss = Object.values(this.addStations)
+                rss = Object.keys(this.addStations)
                 break
             case FunctionalUnit.MULT:
-                rss = Object.values(this.addStations)
+                rss = Object.keys(this.addStations)
                 break
             case FunctionalUnit.LOAD:
-                rss = Object.values(this.addStations)
+                rss = Object.keys(this.addStations)
                 break
             case FunctionalUnit.STORE:
-                rss = Object.values(this.addStations)
+                rss = Object.keys(this.addStations)
                 break
         }
 
-        for (let rs of rss) if (!rs.busy) return rs
-        return null
+        for (const rs of rss) if (!this.stations[rs].busy) return rs
+        return ""
     }
 
-    insert(instruction: Array<string>, hazard: string) {
-        const rs = this.getFreeSlotFromInstruction(instruction)
-        if (!rs) return ""
+    insert(instruction: Array<string>, hazards: Array<string> = [], uuid: string = ""): Array<string> {
+        const rs = (!uuid || !(uuid in this.queried)) ? this.getFreeSlotFromInstruction(instruction) : this.queried[uuid].name
+        if (!rs) return []
 
-        const knownRegister = RegisterBank.getByName(hazard)
+        if (hazards.length === 0) {
+            const reg1 = getFirstReadRegister(instruction)
+            const reg2 = getSecondReadRegister(instruction)
 
-        rs.busy = true
-        rs.vi = knownRegister.value
-        rs.instruction = instruction[0]
-        rs.qj = rs.name
-        RegisterBank.getByName(hazard).rs = rs.name
-        return rs.name
+            const is1Physical = reg1.startsWith("$")
+            const is2Physical = reg2 && reg2.startsWith("$")
+            const immediate = instruction[instruction.length - 1].startsWith("$")
+                ? undefined : Number(instruction[instruction.length - 1])
 
-        // const operands = numberOfOperands(instruction)
-        //
-        // if (operands === Operands.THREE) {
-        //
-        //     switch (instruction[0]) {
-        //         case "ADDI":
-        //         case "ADDIU":
-        //         case "ANDI":
-        //         case "ORI":
-        //         case "SLL":
-        //         case "SRL":
-        //         case "SLTI": {
-        //             if (isAdd(instruction)) {
-        //             }
-        //             break
-        //         }
-        //         case "ADD":
-        //         case "ADDU":
-        //         case "SUB":
-        //         case "SUBU":
-        //         case "MUL":
-        //         case "AND":
-        //         case "OR":
-        //         case "SLT": {
-        //             break
-        //         }
-        //         case "BEQ": {
-        //             break
-        //         }
-        //         case "BNE": {
-        //             break
-        //         }
-        //         case "BGT": {
-        //             break
-        //         }
-        //         case "BGE": {
-        //             break
-        //         }
-        //         case "BLT": {
-        //             break
-        //         }
-        //         case "BLE": {
-        //             break
-        //         }
-        //         default:
-        //             throw Error("Unknown instruction " + instruction[0])
-        //     }
-        //
-        //     return
-        // }
-        //
-        // if (operands === Operands.TWO) {
-        //     const reg1 = RegisterBank.getByName(instruction[1])
-        //
-        //     switch (instruction[0]) {
-        //         case "MULT": {
-        //             break
-        //         }
-        //         case "DIV": {
-        //             break
-        //         }
-        //         case "LI": {
-        //             break
-        //         }
-        //         default:
-        //             throw Error("Unknown instruction " + instruction[0])
-        //     }
-        //
-        //     return
-        // }
-        //
-        // if (operands === Operands.ONE) {
-        //     switch (instruction[0]) {
-        //         case "MFHI": {
-        //             break
-        //         }
-        //         case "MFLO": {
-        //             break
-        //         }
-        //         case "J": {
-        //             break
-        //         }
-        //         case "JR": {
-        //             break
-        //         }
-        //         case "JAL": {
-        //             break
-        //         }
-        //         default:
-        //             throw Error("Unknown instruction " + instruction[0])
-        //     }
-        //
-        //     return
-        // }
-    }
+            this.stations[rs].insert({
+                instruction: instruction[0],
+                vi: is1Physical ? RegisterBank.getByName(reg1).value : undefined,
+                qk: is1Physical ? reg1 : undefined,
+                vj: is2Physical ? RegisterBank.getByName(reg2).value : immediate,
+                qj: is2Physical ? reg2 : undefined,
+            })
+        } else {
+            const is1Physical = hazards[0].startsWith("$")
+            const is2Physical = hazards.length > 1 && hazards[1].startsWith("$")
+            const immediate = instruction[instruction.length - 1].startsWith("$")
+                ? undefined : Number(instruction[instruction.length - 1])
 
-    insertInstruction(instruction: Array<string>): boolean {
-        if (isAdd(instruction)) {
-            const rs = this.getFreeSlot(FunctionalUnit.ADD)
-            if (!rs) return false
+            this.registers[rs] = RegisterBank.getByName(hazards[0])
 
-            const [, , _reg1, _reg2] = instruction
-            const reg1 = RegisterBank.getByName(_reg1)
-            const reg2 = RegisterBank.getByName(_reg2)
-            if (!reg1.rs) {
-                reg1.rs = rs.name
-            } else if (!reg2.rs) {
-                reg2.rs = rs.name
-            }
-        } else if (isMult(instruction)) {
-            const rs = this.getFreeSlot(FunctionalUnit.MULT)
-            if (!rs) return false
+            this.stations[rs].insert({
+                instruction: instruction[0],
+                vi: is1Physical ? RegisterBank.getByName(hazards[0]).value : undefined,
+                qk: is1Physical ? hazards[0] : undefined,
+                vj: is2Physical ? RegisterBank.getByName(hazards[1]).value : immediate,
+                qj: is2Physical ? hazards[1] : undefined,
+            })
 
-        } else if (isLoad(instruction)) {
-            const rs = this.getFreeSlot(FunctionalUnit.LOAD)
-            if (!rs) return false
-
-        } else if (isStore(instruction)) {
-            const rs = this.getFreeSlot(FunctionalUnit.STORE)
-            if (!rs) return false
-
+            // reg.rs = rs // TODO this has to be in the execution phase
         }
 
-        return true
+        this.queried[uuid] = this.stations[rs]
+        this.memo[instruction.join(" ")] = rs
+        return [rs]
     }
+
+    // insertInstruction(instruction: Array<string>): boolean {
+    //     if (isAdd(instruction)) {
+    //         const rs = this.getFreeSlot(FunctionalUnit.ADD)
+    //         if (!rs) return false
+    //
+    //         const [, , _reg1, _reg2] = instruction
+    //         const reg1 = RegisterBank.getByName(_reg1)
+    //         const reg2 = RegisterBank.getByName(_reg2)
+    //         if (!reg1.rs) {
+    //             reg1.rs = rs.name
+    //         } else if (!reg2.rs) {
+    //             reg2.rs = rs.name
+    //         }
+    //     } else if (isMult(instruction)) {
+    //         const rs = this.getFreeSlot(FunctionalUnit.MULT)
+    //         if (!rs) return false
+    //
+    //     } else if (isLoad(instruction)) {
+    //         const rs = this.getFreeSlot(FunctionalUnit.LOAD)
+    //         if (!rs) return false
+    //
+    //     } else if (isStore(instruction)) {
+    //         const rs = this.getFreeSlot(FunctionalUnit.STORE)
+    //         if (!rs) return false
+    //
+    //     }
+    //
+    //     return true
+    // }
 
     from = (rss: { [name: string]: ReservationStation }) => {
         this.stations = rss

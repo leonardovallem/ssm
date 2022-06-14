@@ -4,6 +4,7 @@ import RegisterBank from "../../processor/components/RegisterBank"
 import VolatileMemory from "../../processor/components/VolatileMemory"
 import MIPS from "../../processor/MIPS"
 import ReservationStations from "../../processor/components/tomasulo/ReservationStations"
+import ReorderBuffers, {State} from "../../processor/components/tomasulo/ReorderBuffers"
 
 const mips = createSlice({
     name: "mips",
@@ -14,7 +15,9 @@ const mips = createSlice({
         PC: 0,
         cycles: 0,
         parsedInstructions: [],
-        reservationStations: ReservationStations.init().stations
+        reservationStations: ReservationStations.init().stations,
+        reorderBuffers: ReorderBuffers.init().buffer.data,
+        phase: State.STAND_BY
     },
     reducers: {
         loadProgram: (state, action) => {
@@ -37,11 +40,19 @@ const mips = createSlice({
             if (window.debug) console.log("[MIPS] Updating Reservation Stations")
             state.reservationStations = action.payload
         },
+        updateReorderBuffers: (state, action) => {
+            if (window.debug) console.log("[MIPS] Updating Reorder Buffers")
+            state.reorderBuffers = action.payload
+        },
         updateMetrics: (state, action) => {
             if (window.debug) console.log("[MIPS] Executing next instruction")
             const {pc, cycles} = action.payload
-            state.PC = pc
-            state.cycles = cycles
+            if (pc) state.PC = pc
+            if (cycles) state.cycles = cycles
+        },
+        runPhase: (state, action) => {
+            if (window.debug) console.log(`[MIPS] Running ${action.payload.toString()} phase`)
+            state.phase = action.payload
         },
         reset: (state) => {
             state.registerBank = RegisterBank.serialize()
@@ -49,6 +60,8 @@ const mips = createSlice({
             state.PC = 0
             state.cycles = 0
             state.parsedInstructions = []
+            state.reservationStations = ReservationStations.init().stations
+            state.phase = State.STAND_BY
         }
     },
 })

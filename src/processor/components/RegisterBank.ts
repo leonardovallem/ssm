@@ -48,12 +48,21 @@ export class RB {
         this.registers = updated.map(obj => new Register(obj.name, obj.value))
     }
 
+    updateRegister(register: Register) {
+        for (const index in this.registers) {
+            if (this.registers[index].name === register.name) {
+                const copy = this.registers.slice()
+                copy[index] = register
+                this.registers = copy
+                return
+            }
+        }
+    }
+
     getByName(name: string) {
         if (!(name in this.byName)) {
-            const ratReg = RegisterAliasTable.getRegister(name)
-            if (!ratReg) throw Error("Unknown register " + name)
-
-            return this.registers[this.byName[ratReg]]
+            if (!(name in ReservationStations.registers)) throw Error("Unknown register " + name)
+            return ReservationStations.registers[name]
         }
         return this.registers[this.byName[name]]
     }
@@ -104,21 +113,30 @@ export class RAT {
         return this.getMapped(register)
     }
 
-    parseHazards(program: Array<string>): Array<string> {
-        return []
+    parseHazards(instruction: Array<string>, hazards: Array<string>, uuid: string = ""): Array<string> {
+        const rs = ReservationStations.insert(instruction, hazards, uuid)
+
+        if (rs.length > 0) {
+            rs.forEach((r, i) => {
+                const index = instruction.indexOf(hazards[i])
+                if (index === -1) return
+
+                instruction[index] = r
+                this.mappings[r] = hazards[i]
+                this.table[hazards[i]] = r
+
+                if (ReservationStations.stations[r].qj === this.mappings[r]) {
+                    ReservationStations.stations[r].qj = this.table[hazards[i]]
+                } else if (ReservationStations.stations[r].qk === this.mappings[r]) {
+                    ReservationStations.stations[r].qk = this.table[hazards[i]]
+                }
+            })
+        }
+        return instruction
     }
 
-    parseHazard(instruction: Array<string>, hazard: string | null): Array<string> {
-        const inst = [...instruction]
-        if (!hazard) return inst
-
-        const rs = ReservationStations.insert(instruction, hazard)
-        if (rs) {
-            inst[inst.indexOf(hazard)] = rs
-            this.mappings[rs] = hazard
-            this.table[hazard] = rs
-        }
-        return inst
+    private isSecondRegister = (instruction: Array<string>, hazards: Array<string>) => {
+        return hazards.length === 1 && instruction.indexOf(hazards[0]) === instruction.length - 1
     }
 
     parse(currentInstruction: Array<string>, nextInstruction?: Array<string>): Array<string> {

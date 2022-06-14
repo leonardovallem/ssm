@@ -21,7 +21,7 @@ export default function RegisterBank() {
                         <TableCell
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
-                            colSpan={2}
+                            colSpan={3}
                         >
                             Register bank
                         </TableCell>
@@ -35,6 +35,10 @@ export default function RegisterBank() {
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
                         >Value</TableCell>
+                        <TableCell
+                            align="center"
+                            style={{backgroundColor: "#414141", color: "white"}}
+                        >RS</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -49,6 +53,9 @@ export default function RegisterBank() {
                                         // @ts-ignore
                                         register.value.displayHex()
                                     }
+                                </TableCell>
+                                <TableCell align="center">
+                                    {register.rs}
                                 </TableCell>
                             </TableRow>
                         )

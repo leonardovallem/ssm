@@ -1,4 +1,4 @@
-import React from "react"
+import React, {useEffect, useState} from "react"
 import Paper from "@mui/material/Paper"
 import TableContainer from "@mui/material/TableContainer"
 import Table from "@mui/material/Table"
@@ -6,11 +6,19 @@ import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import TableBody from "@mui/material/TableBody"
-import ReorderBuffers, {ReorderBuffer as ReorderBufferUnit} from "../../processor/components/tomasulo/ReorderBuffers"
+import {ReorderBuffer as RB} from "../../processor/components/tomasulo/ReorderBuffers"
 import {normalizeBoolean} from "../../util/StringUtils"
+import {useSelector} from "react-redux"
+import {RootState} from "../../store"
 
 export default function ReorderBuffer() {
-    const reorderBuffer = ReorderBuffers
+    const [data, setData] = useState<Array<RB>>([])
+    const {reorderBuffers} = useSelector<RootState, any>(state => state.mips)
+
+    useEffect(() => {
+        setData(reorderBuffers)
+    }, [reorderBuffers])
+
 
     return <Paper sx={{width: "100%", overflow: "hidden"}}>
         <TableContainer sx={{maxHeight: 390}}>
@@ -20,7 +28,7 @@ export default function ReorderBuffer() {
                         <TableCell
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
-                            colSpan={7}
+                            colSpan={5}
                         >
                             Reorder Buffer
                         </TableCell>
@@ -33,11 +41,11 @@ export default function ReorderBuffer() {
                         <TableCell
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
-                        >Busy</TableCell>
+                        >Instruction</TableCell>
                         <TableCell
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
-                        >Instruction</TableCell>
+                        >Busy</TableCell>
                         <TableCell
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
@@ -45,34 +53,27 @@ export default function ReorderBuffer() {
                         <TableCell
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
-                        >Destination</TableCell>
-                        <TableCell
-                            align="center"
-                            style={{backgroundColor: "#414141", color: "white"}}
                         >Value</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {reorderBuffer.map((buffer: ReorderBufferUnit) => {
+                    {data.map((buffer) => {
                         return (
                             <TableRow hover tabIndex={-1} key={buffer.entry}>
                                 <TableCell align="center">
-                                    {normalizeBoolean(buffer.busy)}
+                                    {buffer.entry}
                                 </TableCell>
                                 <TableCell align="center">
-                                    {/*{buffer.instruction.toString()}*/}
+                                    {buffer.instruction}
+                                </TableCell>
+                                <TableCell align="center">
+                                    {normalizeBoolean(buffer.busy)}
                                 </TableCell>
                                 <TableCell align="center">
                                     {buffer.state.toString()}
                                 </TableCell>
                                 <TableCell align="center">
-                                    {buffer.destination.name}
-                                </TableCell>
-                                <TableCell align="center">
-                                    {
-                                        // @ts-ignore
-                                        buffer.value.displayHex()
-                                    }
+                                    {buffer.value}
                                 </TableCell>
                             </TableRow>
                         )

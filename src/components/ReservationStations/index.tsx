@@ -22,7 +22,7 @@ export default function ReservationStations() {
                         <TableCell
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
-                            colSpan={9}
+                            colSpan={8}
                         >
                             Reservation Stations
                         </TableCell>
@@ -56,10 +56,6 @@ export default function ReservationStations() {
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
                         >Qk</TableCell>
-                        <TableCell
-                            align="center"
-                            style={{backgroundColor: "#414141", color: "white"}}
-                        >A</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -97,12 +93,6 @@ export default function ReservationStations() {
                                     {
                                         // @ts-ignore
                                         rs.qj ?? ""
-                                    }
-                                </TableCell>
-                                <TableCell align="center">
-                                    {
-                                        // @ts-ignore
-                                        rs.a ?? ""
                                     }
                                 </TableCell>
                             </TableRow>

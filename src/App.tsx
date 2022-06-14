@@ -26,11 +26,11 @@ function App() {
     }
 
     const layout = [
-        {i: "a", x: 0, y: 0, w: ifBuiltElse(15, 20), h: 12, minW: 5, minH: 5, isBounded: true, resizeHandles},
-        {i: "b", x: 15, y: 0, w: 5, h: 12, minH: 7, maxH: 15, isBounded: true, resizeHandles},
-        {i: "c", x: 0, y: 13, w: 4, h: 12, minH: 7, maxH: 15, isBounded: true, resizeHandles},
-        {i: "d", x: 4, y: 13, w: 8, h: 12, minH: 7, maxH: 15, isBounded: true, resizeHandles},
-        {i: "e", x: 12, y: 13, w: 8, h: 12, minH: 7, maxH: 15, isBounded: true, resizeHandles},
+        {i: "code-editor", x: 0, y: 0, w: ifBuiltElse(15, 20), h: 12, minW: 5, minH: 5, isBounded: true, resizeHandles},
+        {i: "instructions-list", x: 15, y: 0, w: 5, h: 12, minH: 7, maxH: 15, isBounded: true, resizeHandles},
+        {i: "register-bank", x: 0, y: 13, w: 6, h: 12, minH: 7, maxH: 15, isBounded: true, resizeHandles},
+        {i: "reservation-stations", x: 6, y: 13, w: 14, h: 12, minH: 7, maxH: 15, isBounded: true, resizeHandles},
+        {i: "reorder-buffer", x: 5, y: 25, w: 15, h: 12, minH: 7, maxH: 15, isBounded: true, resizeHandles},
         {i: "f", x: 0, y: 0, w: 3, h: 12, minW: 5, minH: 5, isBounded: true, resizeHandles},
     ]
 
@@ -43,11 +43,11 @@ function App() {
             layout={layout}
             rowHeight={30}
         >
-            <div key="a"><CodeEditor/></div>
-            {ifBuiltElse(<div key="b"><ParsedInstructionsList/></div>, null)}
-            <div key="c"><RegisterBank/></div>
-            <div key="d"><ReservationStations/></div>
-            <div key="e"><ReorderBuffer/></div>
+            <div key="code-editor"><CodeEditor/></div>
+            {ifBuiltElse(<div key="instructions-list"><ParsedInstructionsList/></div>, null)}
+            <div key="register-bank"><RegisterBank/></div>
+            <div key="reservation-stations"><ReservationStations/></div>
+            <div key="reorder-buffer"><ReorderBuffer/></div>
             {/*<div key="f"><Memory/></div>*/}
         </GridLayout>
         <Mips/>

@@ -16,3 +16,7 @@
 .instruction-label {
     color: green;
 }
+
+.current-instruction {
+    background-color: rgba(20, 200, 50, 0.5) !important;
+}

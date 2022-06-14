@@ -19,6 +19,8 @@ import {RootState} from "../../store"
 import {editorActions} from "../../store/features/editor"
 import "./style.css"
 import {mipsActions} from "../../store/features/mips"
+import {nextPhase} from "../../processor/components/tomasulo/ReorderBuffers";
+import { canDebug, canExecuteEntirely } from "../../util/Constants"
 
 const MAX_FONT_SIZE = 48
 const MIN_FONT_SIZE = 8
@@ -26,7 +28,7 @@ const MIN_FONT_SIZE = 8
 export default function CodeEditorToolbar() {
     const dispatch = useDispatch()
     const {state, zoom, error} = useSelector<RootState, any>(state => state.editor)
-    const {cycles} = useSelector<RootState, any>(state => state.mips)
+    const {cycles, phase} = useSelector<RootState, any>(state => state.mips)
 
     return (
         <Box sx={{flexGrow: 1}}>
@@ -56,7 +58,6 @@ export default function CodeEditorToolbar() {
                             >
                                 <AddIcon/>
                             </IconButton>
-
                         </Stack>
 
                         <ThemeSelector/>
@@ -77,7 +78,23 @@ export default function CodeEditorToolbar() {
                                 </IconButton>
                             </Tooltip>
 
-                            <Fade
+                            <IconButton aria-label="Run next phase"
+                                        component="span"
+                                        className="font-size-controls"
+                                        onClick={() => {
+                                            dispatch(mipsActions.runPhase(nextPhase(phase)))
+                                            dispatch(editorActions.loadRun())
+                                        }}
+                            >
+                                <PlayIcon color="success"
+                                          fontSize="large"
+                                />
+                                <Typography variant="h6" component="span" className="white-text">
+                                    {nextPhase(phase)}
+                                </Typography>
+                            </IconButton>
+
+                            {canExecuteEntirely && <Fade
                                 in={state === ProgramState.NOT_RUNNING || state === ProgramState.DEBUGGING || state === ProgramState.WAITING_FOR_NEXT_INSTRUCTION}>
                                 <Tooltip title={state === ProgramState.NOT_RUNNING
                                     ? "Run program"
@@ -105,9 +122,9 @@ export default function CodeEditorToolbar() {
                                         }
                                     </IconButton>
                                 </Tooltip>
-                            </Fade>
+                            </Fade>}
 
-                            <Tooltip title={state === ProgramState.NOT_RUNNING
+                            { canDebug && <Tooltip title={state === ProgramState.NOT_RUNNING
                                 ? "Debug program"
                                 : "Stop execution"}>
                                 <IconButton aria-label="run program"
@@ -128,7 +145,7 @@ export default function CodeEditorToolbar() {
                                                         fontSize="large"/>
                                     }
                                 </IconButton>
-                            </Tooltip>
+                            </Tooltip>}
 
                             {
                                 (isInExecution(state) || cycles !== 0) &&
