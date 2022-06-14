@@ -6,11 +6,13 @@ import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import TableBody from "@mui/material/TableBody"
-import ReorderBuffers, {ReorderBuffer as ReorderBufferUnit} from "../../processor/components/tomasulo/ReorderBuffers"
-import {normalizeBoolean} from "../../util/StringUtils"
+import ReservationStation from "../../processor/components/tomasulo/ReservationStations"
+import {normalizeBoolean, randomUUID} from "../../util/StringUtils"
+import {useSelector} from "react-redux"
+import {RootState} from "../../store"
 
-export default function ReorderBuffer() {
-    const reorderBuffer = ReorderBuffers
+export default function ReservationStations() {
+    const {reservationStations} = useSelector<RootState, any>(state => state.mips)
 
     return <Paper sx={{width: "100%", overflow: "hidden"}}>
         <TableContainer sx={{maxHeight: 390}}>
@@ -20,16 +22,16 @@ export default function ReorderBuffer() {
                         <TableCell
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
-                            colSpan={7}
+                            colSpan={9}
                         >
-                            Reorder Buffer
+                            Reservation Stations
                         </TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
-                        >Entry</TableCell>
+                        >Name</TableCell>
                         <TableCell
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
@@ -41,37 +43,66 @@ export default function ReorderBuffer() {
                         <TableCell
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
-                        >State</TableCell>
+                        >Vi</TableCell>
                         <TableCell
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
-                        >Destination</TableCell>
+                        >Vj</TableCell>
                         <TableCell
                             align="center"
                             style={{backgroundColor: "#414141", color: "white"}}
-                        >Value</TableCell>
+                        >Qj</TableCell>
+                        <TableCell
+                            align="center"
+                            style={{backgroundColor: "#414141", color: "white"}}
+                        >Qk</TableCell>
+                        <TableCell
+                            align="center"
+                            style={{backgroundColor: "#414141", color: "white"}}
+                        >A</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {reorderBuffer.map((buffer: ReorderBufferUnit) => {
+                    {ReservationStation.from(reservationStations).map((rs) => {
                         return (
-                            <TableRow hover tabIndex={-1} key={buffer.entry}>
+                            <TableRow hover tabIndex={-1} key={randomUUID()}>
                                 <TableCell align="center">
-                                    {normalizeBoolean(buffer.busy)}
+                                    {rs.name}
                                 </TableCell>
                                 <TableCell align="center">
-                                    {/*{buffer.instruction.toString()}*/}
+                                    {normalizeBoolean(rs.busy)}
                                 </TableCell>
                                 <TableCell align="center">
-                                    {buffer.state.toString()}
-                                </TableCell>
-                                <TableCell align="center">
-                                    {buffer.destination.name}
+                                    {rs.instruction?.toString() ?? ""}
                                 </TableCell>
                                 <TableCell align="center">
                                     {
                                         // @ts-ignore
-                                        buffer.value.displayHex()
+                                        rs.vi?.displayHex() ?? ""
+                                    }
+                                </TableCell>
+                                <TableCell align="center">
+                                    {
+                                        // @ts-ignore
+                                        rs.vj?.displayHex() ?? ""
+                                    }
+                                </TableCell>
+                                <TableCell align="center">
+                                    {
+                                        // @ts-ignore
+                                        rs.qk ?? ""
+                                    }
+                                </TableCell>
+                                <TableCell align="center">
+                                    {
+                                        // @ts-ignore
+                                        rs.qj ?? ""
+                                    }
+                                </TableCell>
+                                <TableCell align="center">
+                                    {
+                                        // @ts-ignore
+                                        rs.a ?? ""
                                     }
                                 </TableCell>
                             </TableRow>

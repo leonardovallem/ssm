@@ -1,11 +1,10 @@
 import Queue from "../../../util/Queue"
 import Register from "../Register"
-import ReservationStations from "./ReservationStations"
 
 enum State {
     COMMIT = "Commit",
+    EXECUTE = "Execute",
     WRITE_RESULT = "Write Result",
-    EXECUTE = "Execute"
 }
 
 export class ReorderBuffer {
@@ -24,14 +23,15 @@ export class ReorderBuffer {
     }
 }
 
-export default class ReorderBuffers {
+export class ReorderBuffers {
     private lastRegister: number = 0
-    private reservationStation: ReservationStations | null = null
     buffer: Queue<ReorderBuffer> = new Queue<ReorderBuffer>()
 
     writeValue = (register: Register) => {
         // return this.buffer.add()
     }
 
-    map = (transform: (it: ReorderBuffer) => any) => this.buffer.map(rs => transform(rs))
+    map = (transform: (it: ReorderBuffer) => any) => this.buffer.map(rb => transform(rb))
 }
+
+export default new ReorderBuffers()

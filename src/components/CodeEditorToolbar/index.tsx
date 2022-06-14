@@ -132,7 +132,7 @@ export default function CodeEditorToolbar() {
 
                             {
                                 (isInExecution(state) || cycles !== 0) &&
-                                <Chip label={`Cycles: ${cycles}`}/> // TODO add button to increase single cycle
+                                <Chip className="cycle-counter" label={`Cycles: ${cycles}`}/> // TODO add button to increase single cycle
                             }
                         </Stack>
                     </Stack>

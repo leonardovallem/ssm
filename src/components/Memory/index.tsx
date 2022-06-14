@@ -8,10 +8,7 @@ import Paper from "@mui/material/Paper"
 import TableContainer from "@mui/material/TableContainer"
 import TableBody from "@mui/material/TableBody"
 import {TableVirtuoso} from "react-virtuoso"
-import {DisplayHex} from "../../util/StringUtils"
 import {RootState} from "../../store"
-
-DisplayHex()
 
 export default function Memory() {
     const {memory} = useSelector<RootState, any>(state => state.mips)

@@ -40,3 +40,9 @@ header {
 .theme-selector > fieldset.Mui-focused {
     border-color: gold !important;
 }
+
+.cycle-counter {
+    background-color: #888888 !important;
+    color: #212121 !important;
+    font-weight: 600;
+}

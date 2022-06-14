@@ -5,67 +5,11 @@ import MipsMemory from "./components/MipsMemory"
 import PersistentMemory from "./components/PersistentMemory"
 import InstructionSet from "./instructions/InstructionSet"
 import {getHighAndLow} from "../util/NumberUtils"
-import {normalizeNumber} from "../util/StringUtils";
-
-export default class MIPS {
-    memory: MipsMemory
-    registerBank: RegisterBank
-    engine: RuntimeEngine
-
-    afterInstruction: () => void = () => {}
-    afterExecution: () => void = () => {}
-
-    // TODO remove lines below
-    static MEMORY_SIZE = Math.pow(2, 8)    //  reduced to 2^8 for performance reasons
-    private static TEXT_SEGMENT_ADDRESS = 0x00400000
-    private static DATA_SEGMENT_ADDRESS = 0x10000000
-
-    constructor(db = false) {
-        this.memory = db ? new PersistentMemory() : new VolatileMemory(MIPS.MEMORY_SIZE)
-        this.registerBank = new RegisterBank()
-        this.engine = new RuntimeEngine()
-            .setRegisterBank(this.registerBank)
-    }
-
-    loadProgram(text: string) {
-        const [labels, instructions] = new InstructionParser()
-            .fromText(text)
-            .parse()
-
-        console.log(labels)
-        console.log(instructions)
-
-        this.engine.setLabels(labels)
-        this.engine.setInstructions(instructions)
-    }
-
-    setPC(pc: number) {
-        this.engine.pc = pc
-    }
-
-    setCycles(cycles: number) {
-        this.engine.cycles = cycles
-    }
-
-    executeNextInstruction(): boolean {
-        if (this.engine.executeNextInstruction()) {
-            this.afterInstruction()
-            return true
-        }
-
-        this.afterExecution()
-        return false
-    }
-
-    executeProgram() {
-        while (this.executeNextInstruction()) {}
-    }
-}
+import {normalizeNumber} from "../util/StringUtils"
 
 class RuntimeEngine {
     private instructions: Array<string> | null = null
     private labels: { [label: string]: number } | null = null
-    private registerBank: RegisterBank | null = null
     pc: number = 0
     cycles: number = 0
 
@@ -76,11 +20,6 @@ class RuntimeEngine {
 
     setLabels(labels: { [label: string]: number }) {
         this.labels = labels
-        return this
-    }
-
-    setRegisterBank(registerBank: RegisterBank) {
-        this.registerBank = registerBank
         return this
     }
 
@@ -116,13 +55,13 @@ class RuntimeEngine {
 
     private executeInstruction(instruction: Array<string>, operands: Operands) {
         if (operands === Operands.THREE) {
-            const reg1 = this.registerBank!.getByName(instruction[1])
-            const reg2 = this.registerBank!.getByName(instruction[2])
+            const reg1 = RegisterBank.getByName(instruction[1])
+            const reg2 = RegisterBank.getByName(instruction[2])
 
             switch (instruction[0]) {
                 case "ADD":
                 case "ADDU": {
-                    const reg3 = this.registerBank!.getByName(instruction[3])
+                    const reg3 = RegisterBank.getByName(instruction[3])
                     reg1.value = reg2.value + reg3.value
                     break
                 }
@@ -134,17 +73,17 @@ class RuntimeEngine {
                 }
                 case "SUB":
                 case "SUBU": {
-                    const reg3 = this.registerBank!.getByName(instruction[3])
+                    const reg3 = RegisterBank.getByName(instruction[3])
                     reg1.value = reg2.value - reg3.value
                     break
                 }
                 case "MUL": {
-                    const reg3 = this.registerBank!.getByName(instruction[3])
+                    const reg3 = RegisterBank.getByName(instruction[3])
                     reg1.value = reg2.value * reg3.value
                     break
                 }
                 case "AND": {
-                    const reg3 = this.registerBank!.getByName(instruction[3])
+                    const reg3 = RegisterBank.getByName(instruction[3])
                     reg1.value = reg2.value & reg3.value
                     break
                 }
@@ -154,7 +93,7 @@ class RuntimeEngine {
                     break
                 }
                 case "OR": {
-                    const reg3 = this.registerBank!.getByName(instruction[3])
+                    const reg3 = RegisterBank.getByName(instruction[3])
                     reg1.value = reg2.value | reg3.value
                     break
                 }
@@ -174,7 +113,7 @@ class RuntimeEngine {
                     break
                 }
                 case "SLT": {
-                    const reg3 = this.registerBank!.getByName(instruction[3])
+                    const reg3 = RegisterBank.getByName(instruction[3])
                     reg1.value = Number(reg2.value < reg3.value)
                     break
                 }
@@ -221,27 +160,27 @@ class RuntimeEngine {
         }
 
         if (operands === Operands.TWO) {
-            const reg1 = this.registerBank!.getByName(instruction[1])
+            const reg1 = RegisterBank.getByName(instruction[1])
 
             switch (instruction[0]) {
                 case "MULT": {
-                    const reg2 = this.registerBank!.getByName(instruction[2])
+                    const reg2 = RegisterBank.getByName(instruction[2])
                     const product = (BigInt(reg1.value) * BigInt(reg2.value)).toString(16)
 
                     const hi = normalizeNumber(product).substring(0, product.length / 2)
                     const lo = normalizeNumber(product).substring(product.length / 2 + 1)
 
-                    this.registerBank!.getByName("$hi").value = Number("0x" + hi)
-                    this.registerBank!.getByName("$lo").value = Number("0x" + lo)
+                    RegisterBank.getByName("$hi").value = Number("0x" + hi)
+                    RegisterBank.getByName("$lo").value = Number("0x" + lo)
                     break
                 }
                 case "DIV": {
-                    const reg2 = this.registerBank!.getByName(instruction[2])
+                    const reg2 = RegisterBank.getByName(instruction[2])
 
                     const [hi, lo] = getHighAndLow(Math.round(reg1.value / reg2.value))
 
-                    this.registerBank!.getByName("$hi").value = hi
-                    this.registerBank!.getByName("$lo").value = lo
+                    RegisterBank.getByName("$hi").value = hi
+                    RegisterBank.getByName("$lo").value = lo
                     break
                 }
                 case "LI": {
@@ -258,14 +197,14 @@ class RuntimeEngine {
         if (operands === Operands.ONE) {
             switch (instruction[0]) {
                 case "MFHI": {
-                    const hi = this.registerBank!.getByName("$hi")
-                    const destination = this.registerBank!.getByName(instruction[1])
+                    const hi = RegisterBank.getByName("$hi")
+                    const destination = RegisterBank.getByName(instruction[1])
                     destination.value = hi.value
                     break
                 }
                 case "MFLO": {
-                    const lo = this.registerBank!.getByName("$lo")
-                    const destination = this.registerBank!.getByName(instruction[1])
+                    const lo = RegisterBank.getByName("$lo")
+                    const destination = RegisterBank.getByName(instruction[1])
                     destination.value = lo.value
                     break
                 }
@@ -275,12 +214,12 @@ class RuntimeEngine {
                     break
                 }
                 case "JR": {
-                    const destination = this.registerBank!.getByName(instruction[1])
+                    const destination = RegisterBank.getByName(instruction[1])
                     this.pc = (destination.value / 4) - 1   // addresses have a 4 step, array indexes are sequential
                     break
                 }
                 case "JAL": {
-                    const ra = this.registerBank!.getByName("$ra")
+                    const ra = RegisterBank.getByName("$ra")
                     ra.value = this.pc = (this.pc * 4) + 1   // addresses have a 4 step, array indexes are sequential
 
                     const target = this.labels![instruction[1]]
@@ -296,6 +235,89 @@ class RuntimeEngine {
     }
 }
 
-enum Operands {
+export class MIPS {
+    memory: MipsMemory
+    engine: RuntimeEngine
+    parsedInstructions: Array<string> = []
+
+    runCycle() {
+
+    }
+
+    afterInstruction: () => void = () => {}
+
+    beforeExecution: () => void = () => {}
+    afterExecution: () => void = () => {}
+
+    // TODO remove lines below
+    static MEMORY_SIZE = Math.pow(2, 8)    //  reduced to 2^8 for performance reasons
+    private static TEXT_SEGMENT_ADDRESS = 0x00400000
+    private static DATA_SEGMENT_ADDRESS = 0x10000000
+
+    constructor(db = false) {
+        this.memory = db ? new PersistentMemory() : new VolatileMemory(MIPS.MEMORY_SIZE)
+        this.engine = new RuntimeEngine()
+    }
+
+    init(db = false) {
+        this.memory = db ? new PersistentMemory() : new VolatileMemory(MIPS.MEMORY_SIZE)
+        this.engine = new RuntimeEngine()
+    }
+
+    loadProgram(text: string) {
+        const [labels, instructions] = new InstructionParser()
+            .fromText(text)
+            .parse()
+
+        // @ts-ignore
+        if (window.debug) {
+            console.log("Labels:", labels)
+            console.log("Instructions:", instructions)
+        }
+
+        this.engine.setLabels(labels)
+        this.engine.setInstructions(instructions)
+    }
+
+    setPC(pc: number) {
+        this.engine.pc = pc
+    }
+
+    setCycles(cycles: number) {
+        this.engine.cycles = cycles
+    }
+
+    executeNextInstruction(): boolean {
+        if (this.engine.pc === 0) this.beforeExecution()
+        if (this.engine.executeNextInstruction()) {
+            this.afterInstruction()
+            return true
+        }
+
+        this.afterExecution()
+        return false
+    }
+
+    executeProgram() {
+        while (this.executeNextInstruction()) {}
+    }
+}
+
+export default new MIPS()
+
+export enum Operands {
     NONE, ONE, TWO, THREE
+}
+
+export function numberOfOperands(instruction: Array<string>) {
+    switch (instruction.length) {
+        case 4:
+            return Operands.THREE
+        case 3:
+            return Operands.TWO
+        case 2:
+            return Operands.ONE
+    }
+
+    throw Error(`Instruction ${instruction.join(" ")} is invalid`)
 }

@@ -3,20 +3,27 @@ import {createSlice} from "@reduxjs/toolkit"
 import RegisterBank from "../../processor/components/RegisterBank"
 import VolatileMemory from "../../processor/components/VolatileMemory"
 import MIPS from "../../processor/MIPS"
+import ReservationStations from "../../processor/components/tomasulo/ReservationStations"
 
 const mips = createSlice({
     name: "mips",
     initialState: {
         program: "",
-        registerBank: new RegisterBank().serialize(),
+        registerBank: RegisterBank.cleared().serialize(),
         memory: new VolatileMemory(MIPS.MEMORY_SIZE),
         PC: 0,
-        cycles: 0
+        cycles: 0,
+        parsedInstructions: [],
+        reservationStations: ReservationStations.init().stations
     },
     reducers: {
         loadProgram: (state, action) => {
             if (window.debug) console.log("[MIPS] Program loaded")
             state.program = action.payload
+        },
+        loadInstructions: (state, action) => {
+            if (window.debug) console.log("[MIPS] Parsed instructions loaded")
+            state.parsedInstructions = action.payload
         },
         updateRegisterBank: (state, action) => {
             if (window.debug) console.log("[MIPS] Updating register bank")
@@ -26,6 +33,10 @@ const mips = createSlice({
             if (window.debug) console.log("[MIPS] Updating memory")
             state.memory = action.payload
         },
+        updateReservationStations: (state, action) => {
+            if (window.debug) console.log("[MIPS] Updating Reservation Stations")
+            state.reservationStations = action.payload
+        },
         updateMetrics: (state, action) => {
             if (window.debug) console.log("[MIPS] Executing next instruction")
             const {pc, cycles} = action.payload
@@ -33,10 +44,11 @@ const mips = createSlice({
             state.cycles = cycles
         },
         reset: (state) => {
-            state.registerBank = new RegisterBank().serialize()
+            state.registerBank = RegisterBank.serialize()
             state.memory = new VolatileMemory(MIPS.MEMORY_SIZE)
             state.PC = 0
             state.cycles = 0
+            state.parsedInstructions = []
         }
     },
 })

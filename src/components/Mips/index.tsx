@@ -5,22 +5,29 @@ import {RootState} from "../../store"
 import ProgramState from "../../util/EditorState"
 import {editorActions} from "../../store/features/editor"
 import {mipsActions} from "../../store/features/mips"
+import RegisterBank, {RegisterAliasTable} from "../../processor/components/RegisterBank"
+import ReservationStations from "../../processor/components/tomasulo/ReservationStations"
 
 export default function Mips() {
     const dispatch = useDispatch()
-    const mipsEngine = new MipsEngine()
 
     function configureExecution() {
+        RegisterAliasTable.init()
+        ReservationStations.init()
         loadComponents()
 
-        mipsEngine.afterInstruction = () => {
-            dispatch(mipsActions.updateRegisterBank(mipsEngine.registerBank.registers))
-            dispatch(mipsActions.updateMemory(mipsEngine.memory))
-            dispatch(mipsActions.updateMetrics(mipsEngine.engine))
+        MipsEngine.beforeExecution = () => {
+            dispatch(mipsActions.loadInstructions(MipsEngine.parsedInstructions))
+            dispatch(mipsActions.updateReservationStations(ReservationStations.stations))
         }
-        mipsEngine.afterExecution = () => {
-            dispatch(mipsActions.updateRegisterBank(mipsEngine.registerBank.registers))
-            dispatch(mipsActions.updateMemory(mipsEngine.memory))
+        MipsEngine.afterInstruction = () => {
+            dispatch(mipsActions.updateRegisterBank(RegisterBank.registers))
+            dispatch(mipsActions.updateMemory(MipsEngine.memory))
+            dispatch(mipsActions.updateMetrics(MipsEngine.engine))
+        }
+        MipsEngine.afterExecution = () => {
+            dispatch(mipsActions.updateRegisterBank(RegisterBank.registers))
+            dispatch(mipsActions.updateMemory(MipsEngine.memory))
             dispatch(editorActions.stopExecution())
         }
     }
@@ -28,11 +35,13 @@ export default function Mips() {
     const {mips, editor} = useSelector<RootState, any>((state) => state)
 
     function loadComponents() {
-        mipsEngine.memory = mips.memory
-        mipsEngine.registerBank.update(mips.registerBank)
-        mipsEngine.loadProgram(mips.program)
-        mipsEngine.setPC(mips.PC)
-        mipsEngine.setCycles(mips.cycles)
+        RegisterBank.update(mips.registerBank)
+        MipsEngine.memory = mips.memory
+        MipsEngine.parsedInstructions = mips.parsedInstructions
+        MipsEngine.loadProgram(mips.program)
+        MipsEngine.setPC(mips.PC)
+        MipsEngine.setCycles(mips.cycles)
+        ReservationStations.stations = mips.reservationStations
     }
 
     function loadProgram(after: () => void = () => {
@@ -43,7 +52,7 @@ export default function Mips() {
             return
         }
 
-        mipsEngine.loadProgram(mips.program)
+        MipsEngine.loadProgram(mips.program)
         after()
     }
 
@@ -65,7 +74,7 @@ export default function Mips() {
                 break
             case ProgramState.RUNNING:
                 try {
-                    loadProgram(() => mipsEngine.executeProgram())
+                    loadProgram(() => MipsEngine.executeProgram())
                 } catch (e: any) {
                     // @ts-ignore
                     if (window.debug) console.log(e)
@@ -78,7 +87,7 @@ export default function Mips() {
                 // idle
                 break
             case ProgramState.EXECUTE_NEXT_INSTRUCTION:
-                if (mipsEngine.executeNextInstruction()) dispatch(editorActions.waitingNextInstruction())
+                if (MipsEngine.executeNextInstruction()) dispatch(editorActions.waitingNextInstruction())
         }
     }, [editor.state])
 

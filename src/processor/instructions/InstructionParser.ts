@@ -1,4 +1,7 @@
 import InstructionSet from "./InstructionSet"
+import {RegisterAliasTable} from "../components/RegisterBank"
+import MIPS from "../MIPS"
+import fixHazards from "../components/tomasulo/HazardSearch"
 
 export default class InstructionParser {
     private input: string = ""
@@ -14,6 +17,8 @@ export default class InstructionParser {
         { [label: string]: number },
         Array<string>
     ] {
+        RegisterAliasTable.init()
+        const instructions: Array<string> = []
         let notInstructions = 0
 
         this.input.split("\n").forEach((line, index) => {
@@ -26,14 +31,19 @@ export default class InstructionParser {
             const label = InstructionParser.getLabel(split)
 
             if (label) {
+                instructions.push(label)
                 this.labels[label.substring(0, label.length - 1)] = index - notInstructions++
                 return
             }
 
             if (!(split[0] in InstructionSet)) throw Error("Unknown instruction " + split[0])
-            this.program.push(split.join(" "))
+
+            const joint = split.join(" ")
+            instructions.push(joint)
+            this.program.push(joint)
         })
 
+        MIPS.parsedInstructions = fixHazards(this.program)
         return [this.labels, this.program]
     }
 
