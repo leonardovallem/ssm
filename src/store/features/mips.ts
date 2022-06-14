@@ -2,7 +2,6 @@
 import {createSlice} from "@reduxjs/toolkit"
 import RegisterBank from "../../processor/components/RegisterBank"
 import VolatileMemory from "../../processor/components/VolatileMemory"
-import MIPS from "../../processor/MIPS"
 import ReservationStations from "../../processor/components/tomasulo/ReservationStations"
 import ReorderBuffers, {State} from "../../processor/components/tomasulo/ReorderBuffers"
 
@@ -11,7 +10,7 @@ const mips = createSlice({
     initialState: {
         program: "",
         registerBank: RegisterBank.cleared().serialize(),
-        memory: new VolatileMemory(MIPS.MEMORY_SIZE),
+        memory: new VolatileMemory(),
         PC: 0,
         cycles: 0,
         parsedInstructions: [],
@@ -56,7 +55,7 @@ const mips = createSlice({
         },
         reset: (state) => {
             state.registerBank = RegisterBank.serialize()
-            state.memory = new VolatileMemory(MIPS.MEMORY_SIZE)
+            state.memory = new VolatileMemory()
             state.PC = 0
             state.cycles = 0
             state.parsedInstructions = []

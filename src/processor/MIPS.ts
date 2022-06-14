@@ -39,7 +39,8 @@ class RuntimeEngine {
      */
     executeNextInstruction(): boolean {
         const currentInstruction = this.all![this.pc]
-        console.log(this.pc, currentInstruction)
+        if (!currentInstruction) return false
+
         const inst = getInstructionOrLabel(currentInstruction)
 
         if (inst.length === 1) {
@@ -363,18 +364,13 @@ export class MIPS {
     afterExecution: () => void = () => {
     }
 
-    // TODO remove lines below
-    static MEMORY_SIZE = Math.pow(2, 8)    //  reduced to 2^8 for performance reasons
-    private static TEXT_SEGMENT_ADDRESS = 0x00400000
-    private static DATA_SEGMENT_ADDRESS = 0x10000000
-
     constructor(db = false) {
-        this.memory = db ? new PersistentMemory() : new VolatileMemory(MIPS.MEMORY_SIZE)
+        this.memory = db ? new PersistentMemory() : new VolatileMemory()
         this.engine = new RuntimeEngine()
     }
 
     init(db = false) {
-        this.memory = db ? new PersistentMemory() : new VolatileMemory(MIPS.MEMORY_SIZE)
+        this.memory = db ? new PersistentMemory() : new VolatileMemory()
         this.engine = new RuntimeEngine()
     }
 

@@ -1,12 +1,19 @@
 import MipsMemory from "./MipsMemory"
+import {MIPS_MEMORY_SIZE} from "../../util/Constants"
 
 export default class VolatileMemory implements MipsMemory {
     size: number
     table: Array<number>
 
-    constructor(size: number) {
+    constructor(size: number = MIPS_MEMORY_SIZE) {
         this.size = size
         this.table = Array(size).fill(0)
+    }
+
+    from(table: Array<number>) {
+        this.table = table
+        this.size = table.length
+        return this
     }
 
     update(newTable: Array<number>) {
