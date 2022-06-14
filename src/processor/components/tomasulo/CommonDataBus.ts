@@ -1,27 +1,24 @@
 import {Observable, Observer} from "../../../util/Observer"
+import FunctionalUnit from "./FunctionalUnit"
 
-export default class CommonDataBus implements Observable<number> {
-    observers: Array<Observer<number>> = []
-    private value: number = 0
-    private static instance: CommonDataBus | null = null
+export class CommonDataBus implements Observable<FunctionalUnit, number> {
+    observers: Array<Observer<FunctionalUnit, number>> = []
+    private source: FunctionalUnit = FunctionalUnit.NULL
+    private data: number = 0
 
-    private constructor() {}
-
-    static getInstance(): CommonDataBus {
-        if (!this.instance) this.instance = new CommonDataBus()
-        return this.instance
-    }
-
-    update(value: number) {
-        this.value = value
+    update(source: FunctionalUnit, data: number) {
+        this.source = source
+        this.data = data
         this.notifyObservers()
     }
 
-    addObserver(ob: Observer<number>) {
+    addObserver(ob: Observer<FunctionalUnit, number>) {
         this.observers.push(ob)
     }
 
     notifyObservers() {
-        this.observers.forEach(ob => ob.update(this.value))
+        this.observers.forEach(ob => ob.update(this.source, this.data))
     }
 }
+
+export default new CommonDataBus()

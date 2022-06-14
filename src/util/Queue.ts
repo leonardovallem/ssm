@@ -1,11 +1,38 @@
 export default class Queue<T> {
-    data: Array<T> = []
+    data: Array<T>
+    private head: number
+    private tail: number
+    private readonly maxSize: number
+    private length: number
 
-    add = (value: T) => this.data.push(value)
+    constructor(maxSize: number = 100) {
+        this.data = Array(maxSize)
+        this.maxSize = maxSize
+        this.head = this.tail = this.length = 0
+    }
 
-    peek = () => this.data[this.data.length - 1]
+    enqueue = (value: T) => {
+        const index = this.tail++ % this.maxSize
+        const updated = this.data.slice()
+        updated[index] = value
+        this.data = updated
+        this.length++
+        return index
+    }
 
-    pop = () => this.data.pop()
+    peek = () => this.data[this.head % this.maxSize]
 
-    map = (transform: (it: T) => any) => this.data.map(t => transform(t))
+    dequeue = () => {
+        const value = this.data[this.head++ % this.maxSize]
+        this.length--
+        return value
+    }
+
+    map = (transform: (it: T) => any) => {
+        const data: Array<any> = []
+        for (let i=this.head ; i < this.tail ; i++) data[i] = transform(this.data[i])
+        return data
+    }
+
+    size = () => this.length
 }

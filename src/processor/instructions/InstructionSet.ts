@@ -5,6 +5,70 @@ interface Instruction {
     op3: boolean
 }
 
+export const isAdd = (instruction: Array<string>) => [
+    "ADD",
+    "ADDI",
+    "ADDU",
+    "ADDIU",
+    "SUB",
+    "SUBU",
+].includes(instruction[0])
+
+export const isMult = (instruction: Array<string>) => [
+    "MUL", "MULT", "DIV"
+].includes(instruction[0])
+
+export const isALU = (instruction: Array<string>) => [
+    "ADD",
+    "ADDI",
+    "ADDU",
+    "ADDIU",
+    "SUB",
+    "SUBU",
+    "MUL",
+    "MULT",
+    "AND",
+    "ANDI",
+    "OR",
+    "ORI",
+    "SRL",
+    "SLL",
+    "SLT",
+    "SLTI",
+].includes(instruction[0])
+
+export const isBranch = (instruction: Array<string>) => [
+    "BEQ",
+    "BNE",
+    "BGT",
+    "BGE",
+    "BLT",
+    "BLE",
+    "J",
+    "JR",
+    "JAL",
+].includes(instruction[0])
+
+export const isLoad = (instruction: Array<string>) => instruction[0] === "LW"
+
+export const isStore = (instruction: Array<string>) => instruction[0] === "SW"
+
+export const enum InstructionType {
+    BRANCH,
+    ALU,
+    STORE,
+    LOAD,
+    OTHER,
+}
+
+export const typeOfInstruction = (instruction: Array<string>) => {
+    if (isALU(instruction)) return InstructionType.ALU
+    if (isBranch(instruction)) return InstructionType.BRANCH
+    if (isLoad(instruction)) return InstructionType.LOAD
+    if (isStore(instruction)) return InstructionType.STORE
+    return InstructionType.OTHER
+}
+
 export const InstructionsThatUpdateFirstRegister = [
     "ADD",
     "ADDI",

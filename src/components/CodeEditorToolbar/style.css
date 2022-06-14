@@ -2,13 +2,13 @@ header {
     background-color: #313131 !important;
 }
 
-.white-text * {
+.white-text, .white-text * {
     color: #F0F0F0;
 }
 
 .font-size-controls {
-    border: thin #707070 solid;
-    border-radius: 1em;
+    border: thin #707070 solid !important;
+    border-radius: 1em !important;
 }
 
 .font-size-controls .Mui-disabled > svg {
@@ -39,4 +39,10 @@ header {
 
 .theme-selector > fieldset.Mui-focused {
     border-color: gold !important;
+}
+
+.cycle-counter {
+    background-color: #888888 !important;
+    color: #212121 !important;
+    font-weight: 600;
 }

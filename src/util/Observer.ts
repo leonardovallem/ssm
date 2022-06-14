@@ -1,9 +1,9 @@
-export interface Observer<T> {
-    update: (newValue: T) => void
+export interface Observer<T, R> {
+    update: (a: T, b: R) => void
 }
 
-export interface Observable<T> {
-    observers: Array<Observer<T>>
-    addObserver: (ob: Observer<T>) => void
+export interface Observable<T, R> {
+    observers: Array<Observer<T, R>>
+    addObserver: (ob: Observer<T, R>) => void
     notifyObservers: () => void
 }

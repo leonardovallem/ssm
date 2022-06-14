@@ -1,4 +1,6 @@
-import InstructionSet from "./InstructionSet"
+import InstructionSet, {isALU, isBranch, isStore} from "./InstructionSet"
+import {RegisterAliasTable} from "../components/RegisterBank"
+import {substringBetween} from "../../util/StringUtils";
 
 export default class InstructionParser {
     private input: string = ""
@@ -12,8 +14,11 @@ export default class InstructionParser {
 
     parse(): [
         { [label: string]: number },
-        Array<string>
+        Array<string>,
+        Array<Array<string> | { [label: string]: number }>,
     ] {
+        RegisterAliasTable.init()
+        const instructions: Array<Array<string> | { [label: string]: number }> = []
         let notInstructions = 0
 
         this.input.split("\n").forEach((line, index) => {
@@ -27,14 +32,20 @@ export default class InstructionParser {
 
             if (label) {
                 this.labels[label.substring(0, label.length - 1)] = index - notInstructions++
+
+                const temp: { [label: string]: number } = {}
+                temp[label] = this.labels[label.substring(0, label.length - 1)]
+                instructions.push(temp)
                 return
             }
 
             if (!(split[0] in InstructionSet)) throw Error("Unknown instruction " + split[0])
+
+            instructions.push(split)
             this.program.push(split.join(" "))
         })
 
-        return [this.labels, this.program]
+        return [this.labels, this.program, instructions]
     }
 
     static getLabel(instruction: Array<string>) {
@@ -53,4 +64,29 @@ export default class InstructionParser {
 
         return split
     }
+}
+
+export function getFirstReadRegister(instruction: Array<string>) {
+    if (isBranch(instruction)
+        || isStore(instruction)
+        || ["MULT", "DIV"].includes(instruction[0])
+    ) return instruction[1]
+    return instruction[2]
+}
+
+export function getSecondReadRegister(instruction: Array<string>) {
+    if ([
+        "BEQ",
+        "BNE",
+        "BGT",
+        "BGE",
+        "BLT",
+        "BLE",
+        "MULT",
+        "DIV",
+    ].includes(instruction[0])) return instruction[2]
+    if (instruction[0] === "LW") return substringBetween(instruction[0], "(", ")")
+    if (isALU(instruction)) return instruction[3]
+
+    return undefined
 }
