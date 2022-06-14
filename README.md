@@ -1,8 +1,30 @@
-# Simulador do algoritmo de Tomasulo
-## Introdução
-<p>Esse é um projeto para disciplina de Arquitetura de Computadores 3.</p>
-<p>O SSM é um simulador multiplataforma do processador MIPS implementado de forma superscalar utilizando o algoritmo de tomasulo com buffers de reordenação., implementado em REACT com TypeScript.</p>
+# SuperScalar MIPS Simulator
 
+A MIPS simulator with a superscalar approach, with dynamic scheduling using Tomasulo's algorithm. Build with React w/ Typescript and Tauri.
+
+## How to run
+
+You can find the executable in the Releases section.
+
+[Windows](/releases/latest)
+
+### Getting started
+
+To run it locally in your browser, first install the project's dependencies with:
+
+    npm i
+
+To open a NodeJS server with the application on your browser, run:
+
+    npm start
+
+To build the React application, run:
+
+    npm run build
+
+After that, if you want to build it to run on your desktop device, generate an executable with:
+
+    npm run tauri build
 
 ## Algoritmo de Tomasulo
 <p> Algoritmo de Tomasulo é um algoritmo de hardware para distribuição dinâmica de tarefas, permitindo a execução simultânea de instruções com o uso de unidades de execução múltiplas. O algoritmo permite que a execução de uma instrução comece antes que a execução da instrução anterior seja concluída, o que é conhecido como execução fora-de-ordem(out-of-order execution).</p>
