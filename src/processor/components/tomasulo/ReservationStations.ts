@@ -114,6 +114,7 @@ export class ReservationStations implements Observer<FunctionalUnit, number> {
     }
 
     private getFreeSlotFromInstruction(instruction: Array<string>): string {
+        console.log(instruction, isAdd(instruction))
         if (isAdd(instruction)) return this.getFreeSlot(FunctionalUnit.ADD)
         if (isMult(instruction)) return this.getFreeSlot(FunctionalUnit.MULT)
         if (isLoad(instruction)) return this.getFreeSlot(FunctionalUnit.LOAD)
@@ -129,14 +130,16 @@ export class ReservationStations implements Observer<FunctionalUnit, number> {
                 rss = Object.keys(this.addStations)
                 break
             case FunctionalUnit.MULT:
-                rss = Object.keys(this.addStations)
+                rss = Object.keys(this.multStations)
                 break
             case FunctionalUnit.LOAD:
-                rss = Object.keys(this.addStations)
+                rss = Object.keys(this.loadStations)
                 break
             case FunctionalUnit.STORE:
-                rss = Object.keys(this.addStations)
+                rss = Object.keys(this.storeStations)
                 break
+            default:
+                rss = Object.keys(this.generalStations)
         }
 
         for (const rs of rss) if (!this.stations[rs].busy) return rs

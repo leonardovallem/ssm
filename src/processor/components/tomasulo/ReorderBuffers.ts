@@ -53,10 +53,11 @@ export class ReorderBuffers {
     }
 
     writeValue = (instruction: Array<string>) => {
-        if (instruction.join(" ") in this.index) return
+        if (instruction.length === 1 || instruction.join(" ") in this.index) return
 
         const inst = instruction.join(" ")
         this.index[inst] = this.buffer.enqueue(new ReorderBuffer(inst))
+        console.log("new rb:", this.index[inst])
     }
 
     from(data: Array<ReorderBuffer>) {
@@ -66,7 +67,12 @@ export class ReorderBuffers {
     }
 
     update = (instruction: Array<string>, state?: State, value?: number) => {
+        if (instruction.length === 1) return
+
         const rb = this.index[instruction.join(" ")]
+        console.log(rb, instruction.join(" ") in this.index)
+        if (!rb) return
+
         if (state) this.buffer.data[rb].state = state
         this.buffer.data[rb].value = value
     }
