@@ -91,6 +91,7 @@ class RuntimeEngine {
                 const register = ReservationStations.registers[rs]
                 if (register) {
                     register.rs = rs
+                    RegisterBank.updateRegister(register)
                 }
             }
             callback()
