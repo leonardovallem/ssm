@@ -21,7 +21,7 @@ export default class InstructionParser {
         const instructions: Array<Array<string> | { [label: string]: number }> = []
         let notInstructions = 0
 
-        this.input.split("\n").forEach((line, index) => {
+        this.input.replace(/\r\n/g, "\n").split("\n").forEach((line, index) => {
             if (!line) {
                 notInstructions++
                 return
