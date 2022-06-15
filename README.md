@@ -2,6 +2,10 @@
 
 A MIPS simulator with a superscalar approach, with dynamic scheduling using Tomasulo's algorithm. Build with React w/ Typescript and Tauri.
 
+# Demo
+
+[SSM Demo Video](https://youtu.be/X9KYnRBFaoM)
+
 ## How to run
 
 You can find the executable in the Releases section.
